@@ -3,13 +3,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { LicenseService } from '../services/licenseService';
 import { License } from '../types';
 import { LicenseCard } from '../components/LicenseCard';
-import { Printer, ArrowLeft, Download, Share2, Link as LinkIcon, Check } from 'lucide-react';
+import { Printer, ArrowLeft, Download, Share2, Link as LinkIcon, Check, RotateCw } from 'lucide-react';
 
 export const ViewLicense: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [license, setLicense] = useState<License | null>(null);
   const [copied, setCopied] = useState(false);
+  const [rotated, setRotated] = useState(true); // Default to rotated for "Magic" first view
 
   useEffect(() => {
     if (id) {
@@ -59,11 +60,19 @@ export const ViewLicense: React.FC = () => {
 
           <div className="flex gap-2 sm:gap-3">
             <button
+              onClick={() => setRotated(!rotated)}
+              className="sm:hidden bg-gray-100 text-gray-700 px-3 py-2 rounded shadow-sm flex items-center gap-2 font-medium"
+            >
+              <RotateCw size={18} />
+              <span className="text-xs">Pivoter</span>
+            </button>
+
+            <button
               onClick={handleCopy}
               className={`flex items-center gap-2 px-4 py-2 rounded shadow-sm font-medium transition-colors ${copied ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
             >
               {copied ? <Check size={18} /> : <LinkIcon size={18} />}
-              <span>{copied ? 'Copié !' : 'Copier le lien'}</span>
+              <span className="hidden xs:inline">{copied ? 'Copié !' : 'Copier'}</span>
             </button>
 
             <button
@@ -71,8 +80,7 @@ export const ViewLicense: React.FC = () => {
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow-sm flex items-center gap-2 font-medium"
             >
               <Share2 size={18} />
-              <span className="hidden sm:inline">Partager</span>
-              <span className="sm:hidden">Envoyer</span>
+              <span>Partager</span>
             </button>
 
             <button
@@ -95,7 +103,8 @@ export const ViewLicense: React.FC = () => {
           </div>
 
           <div className="flex justify-center w-full">
-            <div className="flex justify-center scale-[1.5] portrait:rotate-90 landscape:rotate-0 sm:rotate-0 sm:scale-100 md:scale-110 lg:scale-125 origin-center transition-all duration-300">
+            <div className={`flex justify-center transition-all duration-500 origin-center ${rotated ? 'scale-[1.3] rotate-90' : 'scale-[0.9] sm:scale-100 rotate-0'
+              }`}>
               <LicenseCard license={license} />
             </div>
           </div>

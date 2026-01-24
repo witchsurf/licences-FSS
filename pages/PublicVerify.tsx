@@ -2,13 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { LicenseService } from '../services/licenseService';
 import { License, LicenseStatus } from '../types';
-import { ShieldCheck, ShieldAlert, Ban } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, Ban, RotateCw } from 'lucide-react';
 import { LicenseCard } from '../components/LicenseCard';
 
 export const PublicVerify: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [license, setLicense] = useState<License | null>(null);
   const [loading, setLoading] = useState(true);
+  const [rotated, setRotated] = useState(true);
 
   useEffect(() => {
     if (id) {
@@ -40,9 +41,19 @@ export const PublicVerify: React.FC = () => {
     <div className="min-h-screen bg-white sm:bg-gray-50 flex flex-col items-center">
       {/* Visual Card Display - Fixed Fullscreen on Mobile */}
       <div className="fixed inset-0 z-50 bg-white flex items-center justify-center sm:relative sm:inset-auto sm:z-auto sm:bg-transparent sm:py-8 sm:overflow-visible overflow-hidden">
-        <div className="scale-[1.5] portrait:rotate-90 landscape:rotate-0 sm:rotate-0 sm:scale-100 origin-center transition-all duration-300">
+        <div className={`transition-all duration-500 origin-center ${rotated ? 'scale-[1.5] rotate-90' : 'scale-[0.9] sm:scale-100 rotate-0'
+          }`}>
           <LicenseCard license={license} />
         </div>
+
+        {/* Floating Rotate Button for Mobile */}
+        <button
+          onClick={() => setRotated(!rotated)}
+          className="sm:hidden absolute bottom-8 left-1/2 -translate-x-1/2 bg-black/5 hover:bg-black/10 text-gray-800 px-6 py-3 rounded-full border border-gray-200 flex items-center gap-2 font-bold shadow-lg backdrop-blur-sm transition-all"
+        >
+          <RotateCw size={24} />
+          <span>Pivoter la carte</span>
+        </button>
       </div>
 
       {/* Verification Details - Hidden behind the card on mobile, but available for scrolling if needed or on desktop */}
