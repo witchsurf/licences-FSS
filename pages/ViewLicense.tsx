@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { LicenseService } from '../services/licenseService';
 import { License } from '../types';
 import { LicenseCard } from '../components/LicenseCard';
-import { Printer, ArrowLeft, Download } from 'lucide-react';
+import { Printer, ArrowLeft, Download, Share2 } from 'lucide-react';
 
 export const ViewLicense: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -20,21 +20,49 @@ export const ViewLicense: React.FC = () => {
     window.print();
   };
 
+  const handleShare = async () => {
+    const shareUrl = `${window.location.origin}/#/verify/${license?.id}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Licence FSS - ${license?.firstName} ${license?.lastName}`,
+          text: `Consultez ma licence officielle de la Fédération Sénégalaise de Surf.`,
+          url: shareUrl,
+        });
+      } catch (err) {
+        console.error("Error sharing:", err);
+      }
+    } else {
+      // Fallback: Copy to clipboard
+      navigator.clipboard.writeText(shareUrl);
+      alert("Lien de la carte copié ! Vous pouvez l'envoyer par message.");
+    }
+  };
+
   if (!license) return <div>Chargement...</div>;
 
   return (
     <div className="min-h-screen bg-white sm:bg-gray-100 flex flex-col fixed inset-0 z-[9999] sm:relative sm:inset-auto sm:z-auto">
-      {/* Toolbar - Hidden on mobile */}
-      <div className="bg-white border-b border-gray-200 px-4 py-4 shadow-sm no-print hidden sm:block">
+      {/* Toolbar - Header for desktop, but visible share on mobile */}
+      <div className="bg-white border-b border-gray-200 px-4 py-4 shadow-sm no-print">
         <div className="max-w-4xl mx-auto flex justify-between items-center">
           <button onClick={() => navigate('/admin')} className="text-gray-600 hover:text-gray-900 flex items-center gap-2">
             <ArrowLeft size={20} />
-            Retour
+            <span className="hidden sm:inline">Retour</span>
           </button>
-          <div className="flex gap-3">
+
+          <div className="flex gap-2 sm:gap-3">
+            <button
+              onClick={handleShare}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow-sm flex items-center gap-2 font-medium"
+            >
+              <Share2 size={18} />
+              <span>Envoyer / Partager</span>
+            </button>
+
             <button
               onClick={handlePrint}
-              className="bg-fss-green hover:bg-green-700 text-white px-4 py-2 rounded shadow-sm flex items-center gap-2 font-medium"
+              className="hidden sm:flex bg-fss-green hover:bg-green-700 text-white px-4 py-2 rounded shadow-sm items-center gap-2 font-medium"
             >
               <Printer size={18} />
               Imprimer / PDF
