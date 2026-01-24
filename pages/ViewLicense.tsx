@@ -95,7 +95,7 @@ export const ViewLicense: React.FC = () => {
           </div>
 
           <div className="flex justify-center w-full">
-            <div className="flex justify-center scale-[1.5] rotate-90 sm:scale-100 sm:rotate-0 md:scale-110 lg:scale-125 origin-center transition-all duration-300">
+            <div className="flex justify-center scale-[1.5] portrait:rotate-90 landscape:rotate-0 sm:rotate-0 sm:scale-100 md:scale-110 lg:scale-125 origin-center transition-all duration-300">
               <LicenseCard license={license} />
             </div>
           </div>

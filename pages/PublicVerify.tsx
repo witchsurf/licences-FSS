@@ -39,8 +39,8 @@ export const PublicVerify: React.FC = () => {
   return (
     <div className="min-h-screen bg-white sm:bg-gray-50 flex flex-col items-center">
       {/* Visual Card Display - Fixed Fullscreen on Mobile */}
-      <div className="fixed inset-0 z-50 bg-white flex items-center justify-center sm:relative sm:inset-auto sm:z-auto sm:bg-transparent sm:py-8 sm:overflow-visible">
-        <div className="scale-[1.5] rotate-90 sm:scale-100 sm:rotate-0 origin-center transition-all duration-300">
+      <div className="fixed inset-0 z-50 bg-white flex items-center justify-center sm:relative sm:inset-auto sm:z-auto sm:bg-transparent sm:py-8 sm:overflow-visible overflow-hidden">
+        <div className="scale-[1.5] portrait:rotate-90 landscape:rotate-0 sm:rotate-0 sm:scale-100 origin-center transition-all duration-300">
           <LicenseCard license={license} />
         </div>
       </div>
