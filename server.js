@@ -298,8 +298,12 @@ app.get('*', (req, res) => {
   }
 });
 
-const server = app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+// Export app for Vercel
+export default app;
 
-export default server; 
+// Only start server if run directly (Render/Local), not when imported by Vercel
+if (process.env.VERCEL !== '1') {
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+} 
