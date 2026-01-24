@@ -3,12 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { LicenseService } from '../services/licenseService';
 import { License } from '../types';
 import { LicenseCard } from '../components/LicenseCard';
-import { Printer, ArrowLeft, Download, Share2 } from 'lucide-react';
+import { Printer, ArrowLeft, Download, Share2, Link as LinkIcon, Check } from 'lucide-react';
 
 export const ViewLicense: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [license, setLicense] = useState<License | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -20,8 +21,15 @@ export const ViewLicense: React.FC = () => {
     window.print();
   };
 
+  const shareUrl = `${window.location.origin}/#/verify/${license?.id}`;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(shareUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   const handleShare = async () => {
-    const shareUrl = `${window.location.origin}/#/verify/${license?.id}`;
     if (navigator.share) {
       try {
         await navigator.share({
@@ -33,9 +41,7 @@ export const ViewLicense: React.FC = () => {
         console.error("Error sharing:", err);
       }
     } else {
-      // Fallback: Copy to clipboard
-      navigator.clipboard.writeText(shareUrl);
-      alert("Lien de la carte copié ! Vous pouvez l'envoyer par message.");
+      handleCopy();
     }
   };
 
@@ -53,11 +59,20 @@ export const ViewLicense: React.FC = () => {
 
           <div className="flex gap-2 sm:gap-3">
             <button
+              onClick={handleCopy}
+              className={`flex items-center gap-2 px-4 py-2 rounded shadow-sm font-medium transition-colors ${copied ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+            >
+              {copied ? <Check size={18} /> : <LinkIcon size={18} />}
+              <span>{copied ? 'Copié !' : 'Copier le lien'}</span>
+            </button>
+
+            <button
               onClick={handleShare}
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow-sm flex items-center gap-2 font-medium"
             >
               <Share2 size={18} />
-              <span>Envoyer / Partager</span>
+              <span className="hidden sm:inline">Partager</span>
+              <span className="sm:hidden">Envoyer</span>
             </button>
 
             <button
@@ -65,7 +80,7 @@ export const ViewLicense: React.FC = () => {
               className="hidden sm:flex bg-fss-green hover:bg-green-700 text-white px-4 py-2 rounded shadow-sm items-center gap-2 font-medium"
             >
               <Printer size={18} />
-              Imprimer / PDF
+              Imprimer
             </button>
           </div>
         </div>
