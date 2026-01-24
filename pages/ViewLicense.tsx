@@ -10,11 +10,15 @@ export const ViewLicense: React.FC = () => {
   const navigate = useNavigate();
   const [license, setLicense] = useState<License | null>(null);
   const [copied, setCopied] = useState(false);
-  const [rotated, setRotated] = useState(true); // Default to rotated for "Magic" first view
+  const [rotated, setRotated] = useState(false);
 
   useEffect(() => {
     if (id) {
       LicenseService.getById(id).then(setLicense);
+    }
+    // Auto-rotate ONLY on mobile on first load
+    if (window.innerWidth < 64 * 10) { // roughly 640px
+      setRotated(true);
     }
   }, [id]);
 

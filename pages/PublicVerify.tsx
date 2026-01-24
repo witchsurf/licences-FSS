@@ -9,7 +9,7 @@ export const PublicVerify: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [license, setLicense] = useState<License | null>(null);
   const [loading, setLoading] = useState(true);
-  const [rotated, setRotated] = useState(true);
+  const [rotated, setRotated] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -19,6 +19,11 @@ export const PublicVerify: React.FC = () => {
       });
     } else {
       setLoading(false);
+    }
+
+    // Auto-rotate ONLY on mobile on first load
+    if (window.innerWidth < 640) {
+      setRotated(true);
     }
   }, [id]);
 
