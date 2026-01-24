@@ -44,15 +44,15 @@ export const ViewLicense: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center p-0 sm:p-8">
-        <div className="bg-white p-4 sm:p-12 rounded-xl shadow-none sm:shadow-2xl print:shadow-none print:p-0 print:m-0 w-full max-w-4xl flex flex-col items-center">
-          <div className="mb-6 text-center no-print px-4">
+      <div className="flex-1 flex items-center justify-center p-0">
+        <div className="bg-white rounded-none sm:rounded-xl shadow-none sm:shadow-2xl print:shadow-none print:p-0 print:m-0 w-full h-full sm:h-auto sm:max-w-4xl flex flex-col items-center justify-center">
+          <div className="mb-6 text-center no-print px-4 hidden sm:block">
             <h2 className="text-xl font-bold text-gray-800">Aperçu de la Licence</h2>
             <p className="text-gray-500 text-sm">Prêt pour l'impression ou l'affichage mobile.</p>
           </div>
 
-          <div className="flex justify-center w-full overflow-hidden p-2">
-            <div className="flex justify-center scale-[1.1] sm:scale-100 origin-center">
+          <div className="flex justify-center w-full overflow-hidden p-4 sm:p-2">
+            <div className="flex justify-center scale-[1.2] xs:scale-[1.3] sm:scale-100 origin-center transition-transform">
               <LicenseCard license={license} />
             </div>
           </div>
