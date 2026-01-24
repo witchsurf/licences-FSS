@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: fss-license-manager
+    env: node
+    plan: starter # Required for persistent disks
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    disk:
+      name: fss-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: DATA_DIR
+        value: /var/data
+      - key: NODE_ENV
+        value: production
+      # Important: Tell the app to use the mounted disk for DB and Uploads
+      # You might need to update server.js to respect these paths or symlink them in a pre-start script.
+      # For simplicity here, we assume the app runs from root, so we symlink in buildCommand or startCommand if needed.
+      # Ideally, update server.js to check an env var for DB path.
