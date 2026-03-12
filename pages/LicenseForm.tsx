@@ -37,7 +37,7 @@ export const LicenseForm: React.FC = () => {
     phone: '',
     email: '',
     club: '',
-    category: LicenseCategory.SENIOR,
+    category: LicenseCategory.OPEN,
     type: LicenseType.COMPETITION,
     issueDate: new Date().toISOString().split('T')[0],
     expirationDate: '',

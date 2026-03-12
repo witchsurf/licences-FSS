@@ -1,7 +1,11 @@
 export enum LicenseCategory {
-  JUNIOR = 'Junior',
-  SENIOR = 'Senior',
-  PRO = 'Pro'
+  OPEN = 'OPEN',
+  JUNIOR = 'JUNIOR',
+  CADET = 'CADET',
+  MINIME = 'MINIME',
+  BENJAMIN = 'BENJAMIN',
+  ONDINE_OPEN = 'ONDINE OPEN',
+  ONDINE_U16 = 'ONDINE U16'
 }
 
 export enum LicenseType {
