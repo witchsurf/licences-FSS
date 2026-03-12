@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from 'react';
 import { License, LicenseStatus, LicenseCategory } from '../types';
 import { LicenseService } from '../services/licenseService';
 import { Link, useNavigate } from 'react-router-dom';
@@ -93,13 +94,13 @@ export const Dashboard: React.FC = () => {
     acc[l.category] = acc[l.category] || { name: l.category, value: 0 };
     acc[l.category].value += 1;
     return acc;
-  }, {} as any));
+  }, {} as Record<string, { name: string, value: number }>));
 
   const clubData = Object.values(licenses.reduce((acc, l) => {
     acc[l.club] = acc[l.club] || { name: l.club, value: 0 };
     acc[l.club].value += 1;
     return acc;
-  }, {} as any)).sort((a: any, b: any) => b.value - a.value).slice(0, 5);
+  }, {} as Record<string, { name: string, value: number }>)).sort((a, b) => b.value - a.value).slice(0, 5);
 
   const statusData = [
     { name: 'Valides', value: licenses.filter(l => l.status === LicenseStatus.VALID).length, color: '#00853f' },
@@ -110,7 +111,7 @@ export const Dashboard: React.FC = () => {
   const COLORS = ['#00853f', '#0ea5e9', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
   // Filter Logic
-  const allClubs = Array.from(new Set(licenses.map(l => l.club))).sort();
+  const allClubs = Array.from(new Set(licenses.map(l => l.club))).sort() as string[];
 
   const filteredLicenses = licenses.filter(l => {
     const matchesSearch =
