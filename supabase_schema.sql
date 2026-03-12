@@ -39,3 +39,19 @@ CREATE POLICY "Public Access to Photos" ON storage.objects
 
 CREATE POLICY "Authenticated Uploads" ON storage.objects
   FOR INSERT WITH CHECK (bucket_id = 'licenses-photos');
+
+-- Sequence for License IDs
+CREATE SEQUENCE IF NOT EXISTS license_seq START 1;
+
+-- RPC Function to generate next license ID atomically
+CREATE OR REPLACE FUNCTION generate_next_license_id()
+RETURNS text AS $$
+DECLARE
+  next_val integer;
+  year_text text;
+BEGIN
+  next_val := nextval('license_seq');
+  year_text := to_char(current_date, 'YYYY');
+  RETURN 'FSS-' || year_text || '-' || lpad(next_val::text, 6, '0');
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;

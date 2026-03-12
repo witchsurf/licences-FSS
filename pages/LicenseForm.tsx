@@ -1,35 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { LicenseService } from '../services/licenseService';
 import { LicenseCategory, LicenseType } from '../types';
-import { Save, ArrowLeft, Upload } from 'lucide-react';
+import {
+  ArrowLeft, Camera, Save, User, MapPin,
+  Phone, Mail, Building2, Calendar, ShieldCheck,
+  Upload, Info
+} from 'lucide-react';
 
 export const LicenseForm: React.FC = () => {
-  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const isEditMode = !!id;
-
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    birthDate: '',
-    nationality: 'Sénégalaise',
-    address: '',
-    phone: '',
-    email: '',
-    club: '',
-    category: LicenseCategory.SENIOR,
-    type: LicenseType.LOISIR,
-    issueDate: new Date().toISOString().split('T')[0],
-    expirationDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
-    photoUrl: '/logo.png', // Default placeholder
-  });
-
-  /* New Club List from User Request */
   const predefinedClubs = [
     'SURF CLUB NGOR',
     'TAKEOFF NGOR',
@@ -41,76 +26,70 @@ export const LicenseForm: React.FC = () => {
     'BLACK AND WHITE'
   ];
 
-  /* State to manage if the selected club is "Other" */
   const [isOtherClub, setIsOtherClub] = useState(false);
 
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    birthDate: '',
+    nationality: 'Sénégalaise',
+    address: '',
+    phone: '',
+    email: '',
+    club: '',
+    category: LicenseCategory.SENIOR,
+    type: LicenseType.COMPETITION,
+    issueDate: new Date().toISOString().split('T')[0],
+    expirationDate: '',
+    photoUrl: '',
+  });
+
   useEffect(() => {
-    if (isEditMode && id) {
-      setLoading(true);
-      LicenseService.getById(id).then((license) => {
-        if (license) {
-          setFormData({
-            firstName: license.firstName,
-            lastName: license.lastName,
-            birthDate: license.birthDate,
-            nationality: license.nationality,
-            address: license.address,
-            phone: license.phone,
-            email: license.email,
-            club: license.club,
-            category: license.category,
-            type: license.type,
-            issueDate: license.issueDate,
-            expirationDate: license.expirationDate,
-            photoUrl: license.photoUrl,
-          });
-          setPhotoPreview(license.photoUrl);
-
-          // Check if loaded club is in our list, otherwise it's custom
-          if (license.club && !predefinedClubs.includes(license.club)) {
-            setIsOtherClub(true);
-          }
-        } else {
-          alert("Licence introuvable");
-          navigate('/admin');
-        }
-        setLoading(false);
-      });
-    }
-  }, [id, isEditMode, navigate]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  // Special handler for the Club dropdown
-  const handleClubSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    if (value === 'Autre') {
-      setIsOtherClub(true);
-      setFormData(prev => ({ ...prev, club: '' })); // Clear so they can type
-    } else {
-      setIsOtherClub(false);
-      setFormData(prev => ({ ...prev, club: value }));
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        alert("Le fichier est trop volumineux (Max 2MB)");
+    const init = async () => {
+      const isAuth = await LicenseService.isAuthenticated();
+      if (!isAuth) {
+        navigate('/login');
         return;
       }
 
-      setPhotoFile(file);
+      if (id) {
+        const data = await LicenseService.getById(id);
+        if (data) {
+          setFormData({
+            firstName: data.firstName,
+            lastName: data.lastName,
+            birthDate: data.birthDate,
+            nationality: data.nationality,
+            address: data.address,
+            phone: data.phone,
+            email: data.email,
+            club: data.club,
+            category: data.category,
+            type: data.type,
+            issueDate: data.issueDate,
+            expirationDate: data.expirationDate,
+            photoUrl: data.photoUrl,
+          });
+          setPhotoPreview(data.photoUrl);
+          if (data.club && !predefinedClubs.includes(data.club)) {
+            setIsOtherClub(true);
+          }
+        }
+      } else {
+        const expDate = new Date();
+        expDate.setFullYear(expDate.getFullYear() + 1);
+        setFormData(prev => ({ ...prev, expirationDate: expDate.toISOString().split('T')[0] }));
+      }
+    };
+    init();
+  }, [id, navigate]);
 
-      // Create preview URL
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPhotoFile(file);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result as string);
-      };
+      reader.onloadend = () => setPhotoPreview(reader.result as string);
       reader.readAsDataURL(file);
     }
   };
@@ -118,170 +97,275 @@ export const LicenseForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    try {
-      let finalPhotoUrl = formData.photoUrl;
 
-      // Upload photo if a new file is selected
+    try {
+      let photoUrl = formData.photoUrl;
       if (photoFile) {
-        finalPhotoUrl = await LicenseService.uploadPhoto(photoFile);
+        photoUrl = await LicenseService.uploadPhoto(photoFile);
       }
 
-      const submissionData = {
-        ...formData,
-        photoUrl: finalPhotoUrl
-      };
+      const finalData = { ...formData, photoUrl };
 
-      if (isEditMode && id) {
-        await LicenseService.update(id, submissionData);
+      if (id) {
+        await LicenseService.update(id, finalData);
       } else {
-        await LicenseService.create(submissionData);
+        await LicenseService.create(finalData);
       }
       navigate('/admin');
-    } catch (error) {
-      console.error(error);
-      alert('Erreur lors de l\'enregistrement de la licence. Vérifiez votre connexion.');
+    } catch (err) {
+      alert("Une erreur est survenue lors de l'enregistrement.");
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading && isEditMode && !formData.firstName) {
-    return <div className="flex justify-center p-8">Chargement...</div>;
-  }
+  const inputClasses = "w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:ring-2 focus:ring-fss-green/20 focus:border-fss-green outline-none transition-all";
+  const labelClasses = "text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1.5 flex items-center gap-2";
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
-      <div className="flex items-center gap-4 mb-6">
-        <button onClick={() => navigate('/admin')} className="text-gray-500 hover:text-gray-700">
-          <ArrowLeft size={24} />
-        </button>
-        <h1 className="text-2xl font-bold text-gray-900">
-          {isEditMode ? 'Modifier la Licence' : 'Nouvelle Licence'}
-        </h1>
-      </div>
-
-      <div className="bg-white shadow rounded-lg p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
-
-          {/* Photo Upload Section */}
-          <div className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-            <div className="h-32 w-32 bg-gray-100 rounded-full overflow-hidden mb-2 relative group border border-gray-200">
-              {photoPreview ? (
-                <img src={photoPreview} alt="Preview" className="h-full w-full object-cover" />
-              ) : (
-                <div className="h-full w-full flex items-center justify-center text-gray-400">
-                  <Upload size={32} />
-                </div>
-              )}
-            </div>
-            <label className="cursor-pointer text-sm font-medium text-fss-green hover:underline">
-              <span>{isEditMode ? 'Changer la photo' : 'Télécharger une photo'} (Max 2MB)</span>
-              <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
-            </label>
-            <p className="text-xs text-gray-500 mt-1">Formats acceptés : JPG, PNG</p>
+    <div className="min-h-screen bg-slate-50 pb-20">
+      <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30 px-8 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <button onClick={() => navigate('/admin')} className="p-2 hover:bg-slate-100 rounded-xl transition-all text-slate-500">
+            <ArrowLeft size={20} />
+          </button>
+          <div>
+            <h1 className="text-xl font-bold text-slate-900">{id ? 'Modifier la Licence' : 'Nouvelle Licence'}</h1>
+            <p className="text-xs text-slate-500">Gestion administrative FSS</p>
           </div>
+        </div>
+        <div className="flex gap-3">
+          <button onClick={() => navigate('/admin')} className="btn-secondary h-11 px-6 hidden sm:flex">Annuler</button>
+          <button
+            type="submit"
+            form="license-form"
+            disabled={loading}
+            className="btn-primary h-11 px-8 shadow-lg shadow-fss-green/20"
+          >
+            {loading ? <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><Save size={18} /> Enregistrer</>}
+          </button>
+        </div>
+      </header>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {isEditMode && (
-              <div className="md:col-span-2 bg-blue-50 p-3 rounded text-blue-800 text-sm border border-blue-100 mb-2">
-                Modification de la licence <strong>{id}</strong>
-              </div>
-            )}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Prénom</label>
-              <input required name="firstName" type="text" value={formData.firstName} onChange={handleInputChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-fss-green focus:ring-fss-green p-2 border" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Nom</label>
-              <input required name="lastName" type="text" value={formData.lastName} onChange={handleInputChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-fss-green focus:ring-fss-green p-2 border" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Date de naissance</label>
-              <input required name="birthDate" type="date" value={formData.birthDate} onChange={handleInputChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-fss-green focus:ring-fss-green p-2 border" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Nationalité</label>
-              <input required name="nationality" type="text" value={formData.nationality} onChange={handleInputChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-fss-green focus:ring-fss-green p-2 border" />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700">Adresse / Ville</label>
-              <input required name="address" type="text" value={formData.address} onChange={handleInputChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-fss-green focus:ring-fss-green p-2 border" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Téléphone</label>
-              <input required name="phone" type="tel" value={formData.phone} onChange={handleInputChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-fss-green focus:ring-fss-green p-2 border" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Email</label>
-              <input required name="email" type="email" value={formData.email} onChange={handleInputChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-fss-green focus:ring-fss-green p-2 border" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Club</label>
+      <div className="max-w-5xl mx-auto px-8 py-10">
+        <form id="license-form" onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-              {!isOtherClub ? (
-                <select
-                  value={predefinedClubs.includes(formData.club) ? formData.club : 'Autre'}
-                  onChange={handleClubSelectChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-fss-green focus:ring-fss-green p-2 border"
-                >
-                  <option value="">Sélectionner...</option>
-                  {predefinedClubs.map(c => <option key={c} value={c}>{c}</option>)}
-                  <option value="Autre">Autre / Nouveau...</option>
-                </select>
-              ) : (
-                <div className="flex gap-2">
+          {/* Left Column: Photo & Details */}
+          <div className="space-y-8 lg:col-span-1">
+            <div className="premium-card p-6 flex flex-col items-center">
+              <label className={labelClasses}>Photo Officielle</label>
+              <div className="relative group cursor-pointer mt-4">
+                <div className="h-48 w-48 bg-slate-100 rounded-3xl overflow-hidden border-4 border-white shadow-xl ring-1 ring-slate-200 relative">
+                  {photoPreview ? (
+                    <img src={photoPreview} alt="Preview" className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="h-full w-full flex flex-col items-center justify-center text-slate-400 gap-2">
+                      <Camera size={40} strokeWidth={1.5} />
+                      <span className="text-[10px] font-bold uppercase tracking-widest">Choisir Photo</span>
+                    </div>
+                  )}
                   <input
-                    autoFocus
-                    type="text"
-                    name="club"
-                    value={formData.club}
-                    onChange={handleInputChange}
-                    placeholder="Entrez le nom du club..."
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-fss-green focus:ring-fss-green p-2 border"
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoChange}
+                    className="absolute inset-0 opacity-0 cursor-pointer z-10"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setIsOtherClub(false)}
-                    className="mt-1 px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-md text-gray-700 text-sm"
-                  >
-                    Annuler
-                  </button>
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white pointer-events-none">
+                    <Upload size={24} />
+                  </div>
                 </div>
-              )}
+              </div>
+              <p className="text-[10px] text-slate-400 mt-6 text-center italic">Format recommandé: 400x400px, fond neutre</p>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Catégorie</label>
-              <select name="category" value={formData.category} onChange={handleInputChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-fss-green focus:ring-fss-green p-2 border">
-                {Object.values(LicenseCategory).map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Type</label>
-              <select name="type" value={formData.type} onChange={handleInputChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-fss-green focus:ring-fss-green p-2 border">
-                {Object.values(LicenseType).map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
-            </div>
-            <div className="bg-gray-50 p-4 rounded-md md:col-span-2 grid grid-cols-2 gap-4">
+
+            <div className="premium-card p-6 space-y-4">
+              <h3 className="text-sm font-bold flex items-center gap-2 mb-4">
+                <ShieldCheck size={18} className="text-fss-green" />
+                Statut et Validité
+              </h3>
               <div>
-                <label className="block text-xs font-medium text-gray-500 uppercase">Délivrée le</label>
-                <input type="date" name="issueDate" value={formData.issueDate} onChange={handleInputChange} className="mt-1 block w-full text-sm bg-transparent border-none p-0 focus:ring-0" />
+                <label className={labelClasses}><Calendar size={14} /> Date d'émission</label>
+                <input
+                  type="date"
+                  value={formData.issueDate}
+                  onChange={e => setFormData({ ...formData, issueDate: e.target.value })}
+                  className={inputClasses}
+                  required
+                />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 uppercase">Expire le</label>
-                <input type="date" name="expirationDate" value={formData.expirationDate} onChange={handleInputChange} className="mt-1 block w-full text-sm bg-transparent border-none p-0 focus:ring-0" />
+                <label className={labelClasses}><Calendar size={14} /> Date d'expiration</label>
+                <input
+                  type="date"
+                  value={formData.expirationDate}
+                  onChange={e => setFormData({ ...formData, expirationDate: e.target.value })}
+                  className={inputClasses}
+                  required
+                />
               </div>
             </div>
           </div>
 
-          <div className="pt-4 flex justify-end">
-            <button
-              type="submit"
-              disabled={loading}
-              className={`bg-fss-green text-white px-6 py-3 rounded-md font-bold shadow hover:bg-green-700 transition-colors flex items-center gap-2 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
-            >
-              <Save size={20} />
-              {loading ? 'Enregistrement...' : (isEditMode ? 'Mettre à jour' : 'Enregistrer la Licence')}
-            </button>
+          {/* Right Column: Information Forms */}
+          <div className="lg:col-span-2 space-y-8 animate-fade-in">
+            <div className="premium-card p-8">
+              <div className="flex items-center gap-3 mb-8 pb-4 border-b border-slate-100">
+                <div className="h-8 w-8 bg-slate-100 text-slate-500 rounded-lg flex items-center justify-center">
+                  <User size={18} />
+                </div>
+                <h2 className="text-lg font-bold">Informations Personnelles</h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className={labelClasses}>Prénom</label>
+                  <input
+                    type="text"
+                    value={formData.firstName}
+                    onChange={e => setFormData({ ...formData, firstName: e.target.value })}
+                    className={inputClasses}
+                    placeholder="Prénom du licencié"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className={labelClasses}>Nom</label>
+                  <input
+                    type="text"
+                    value={formData.lastName}
+                    onChange={e => setFormData({ ...formData, lastName: e.target.value })}
+                    className={inputClasses}
+                    placeholder="Nom du licencié"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className={labelClasses}>Date de Naissance</label>
+                  <input
+                    type="date"
+                    value={formData.birthDate}
+                    onChange={e => setFormData({ ...formData, birthDate: e.target.value })}
+                    className={inputClasses}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className={labelClasses}>Nationalité</label>
+                  <input
+                    type="text"
+                    value={formData.nationality}
+                    onChange={e => setFormData({ ...formData, nationality: e.target.value })}
+                    className={inputClasses}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <label className={labelClasses}><MapPin size={14} /> Adresse Résidentielle</label>
+                <input
+                  type="text"
+                  value={formData.address}
+                  onChange={e => setFormData({ ...formData, address: e.target.value })}
+                  className={inputClasses}
+                  placeholder="Adresse complète"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                <div>
+                  <label className={labelClasses}><Phone size={14} /> Téléphone</label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                    className={inputClasses}
+                    placeholder="+221 ..."
+                    required
+                  />
+                </div>
+                <div>
+                  <label className={labelClasses}><Mail size={14} /> Email</label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={e => setFormData({ ...formData, email: e.target.value })}
+                    className={inputClasses}
+                    placeholder="email@domaine.com"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="premium-card p-8">
+              <div className="flex items-center gap-3 mb-8 pb-4 border-b border-slate-100">
+                <div className="h-8 w-8 bg-slate-100 text-slate-500 rounded-lg flex items-center justify-center">
+                  <Building2 size={18} />
+                </div>
+                <h2 className="text-lg font-bold">Affiliation Sportive</h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className={labelClasses}>Club Actuel</label>
+                  {!isOtherClub ? (
+                    <select
+                      value={predefinedClubs.includes(formData.club) ? formData.club : ''}
+                      onChange={e => {
+                        if (e.target.value === 'Autre') setIsOtherClub(true);
+                        else setFormData({ ...formData, club: e.target.value });
+                      }}
+                      className={inputClasses}
+                    >
+                      <option value="">Sélectionner...</option>
+                      {predefinedClubs.map(c => <option key={c} value={c}>{c}</option>)}
+                      <option value="Autre">Autre / Nouveau...</option>
+                    </select>
+                  ) : (
+                    <div className="flex gap-2">
+                      <input
+                        autoFocus
+                        type="text"
+                        value={formData.club}
+                        onChange={e => setFormData({ ...formData, club: e.target.value })}
+                        className={inputClasses}
+                        placeholder="Nom du club..."
+                      />
+                      <button onClick={() => setIsOtherClub(false)} className="px-3 bg-slate-200 rounded-xl text-slate-600">X</button>
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <label className={labelClasses}>Catégorie</label>
+                  <select
+                    value={formData.category}
+                    onChange={e => setFormData({ ...formData, category: e.target.value as LicenseCategory })}
+                    className={inputClasses}
+                  >
+                    {Object.values(LicenseCategory).map(v => <option key={v} value={v}>{v}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className={labelClasses}>Type de Pratique</label>
+                  <select
+                    value={formData.type}
+                    onChange={e => setFormData({ ...formData, type: e.target.value as LicenseType })}
+                    className={inputClasses}
+                  >
+                    {Object.values(LicenseType).map(v => <option key={v} value={v}>{v}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="mt-8 p-4 bg-emerald-50 border border-emerald-100 rounded-2xl flex gap-3">
+                <Info size={20} className="text-emerald-600 flex-shrink-0" />
+                <p className="text-xs text-emerald-800 leading-relaxed">
+                  En enregistrant cette licence, vous certifiez que le licencié est apte à la pratique du surf et que son club est à jour de ses cotisations fédérales.
+                </p>
+              </div>
+            </div>
           </div>
         </form>
       </div>
