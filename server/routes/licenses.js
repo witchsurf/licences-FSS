@@ -110,7 +110,10 @@ router.post('/', authenticate, async (req, res) => {
 // Update
 router.put('/:id', authenticate, async (req, res) => {
     const validation = updateLicenseSchema.safeParse(req.body);
-    if (!validation.success) return res.status(400).json({ error: 'Données invalides' });
+    if (!validation.success) {
+        console.error("Validation error during update:", validation.error.format());
+        return res.status(400).json({ error: 'Données invalides', details: validation.error.format() });
+    }
 
     try {
         const { error } = await supabase.from('licenses').update(validation.data).eq('id', req.params.id);

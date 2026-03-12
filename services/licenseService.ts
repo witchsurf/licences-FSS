@@ -87,20 +87,28 @@ export const LicenseService = {
   },
 
   updateStatus: async (id: string, status: LicenseStatus): Promise<void> => {
-    await fetch(`/api/licenses/${id}/status`, {
+    const res = await fetch(`/api/licenses/${id}/status`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
       credentials: 'include',
     });
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.error || 'Failed to update status');
+    }
   },
 
   update: async (id: string, data: Partial<License>): Promise<void> => {
-    await fetch(`/api/licenses/${id}`, {
+    const res = await fetch(`/api/licenses/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
       credentials: 'include',
     });
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.error || 'Failed to update license');
+    }
   }
 };

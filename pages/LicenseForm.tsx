@@ -64,8 +64,8 @@ export const LicenseForm: React.FC = () => {
             phone: data.phone,
             email: data.email,
             club: data.club,
-            category: data.category,
-            type: data.type,
+            category: (data.category as string).toUpperCase() as LicenseCategory,
+            type: (data.type as string).charAt(0).toUpperCase() + (data.type as string).slice(1).toLowerCase() as LicenseType,
             issueDate: data.issueDate,
             expirationDate: data.expirationDate,
             photoUrl: data.photoUrl,
@@ -112,8 +112,8 @@ export const LicenseForm: React.FC = () => {
         await LicenseService.create(finalData);
       }
       navigate('/admin');
-    } catch (err) {
-      alert("Une erreur est survenue lors de l'enregistrement.");
+    } catch (err: any) {
+      alert(err.message || "Une erreur est survenue lors de l'enregistrement.");
     } finally {
       setLoading(false);
     }
