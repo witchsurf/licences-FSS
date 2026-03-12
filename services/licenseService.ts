@@ -108,7 +108,9 @@ export const LicenseService = {
     });
     if (!res.ok) {
       const errorData = await res.json();
-      throw new Error(errorData.error || 'Failed to update license');
+      const error = new Error(errorData.error || 'Failed to update license') as any;
+      error.details = errorData.details;
+      throw error;
     }
   }
 };

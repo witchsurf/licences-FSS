@@ -55,20 +55,30 @@ export const LicenseForm: React.FC = () => {
       if (id) {
         const data = await LicenseService.getById(id);
         if (data) {
+          // Normalize Category
+          let category = (data.category as string || '').toUpperCase() as LicenseCategory;
+          if (category.toString() === 'SENIOR') category = LicenseCategory.OPEN;
+          if (!Object.values(LicenseCategory).includes(category)) category = LicenseCategory.OPEN;
+
+          // Normalize Type
+          let type = (data.type as string || '').toLowerCase();
+          let finalType = LicenseType.COMPETITION;
+          if (type.includes('loisir')) finalType = LicenseType.LOISIR;
+
           setFormData({
-            firstName: data.firstName,
-            lastName: data.lastName,
-            birthDate: data.birthDate,
-            nationality: data.nationality,
-            address: data.address,
-            phone: data.phone,
-            email: data.email,
-            club: data.club,
-            category: (data.category as string).toUpperCase() as LicenseCategory,
-            type: (data.type as string).charAt(0).toUpperCase() + (data.type as string).slice(1).toLowerCase() as LicenseType,
-            issueDate: data.issueDate,
-            expirationDate: data.expirationDate,
-            photoUrl: data.photoUrl,
+            firstName: data.firstName || '',
+            lastName: data.lastName || '',
+            birthDate: data.birthDate || '',
+            nationality: data.nationality || 'Sénégalaise',
+            address: data.address || '',
+            phone: data.phone || '',
+            email: data.email || '',
+            club: data.club || '',
+            category: category,
+            type: finalType,
+            issueDate: data.issueDate || '',
+            expirationDate: data.expirationDate || '',
+            photoUrl: data.photoUrl || '',
           });
           setPhotoPreview(data.photoUrl);
           if (data.club && !predefinedClubs.includes(data.club)) {
@@ -113,7 +123,14 @@ export const LicenseForm: React.FC = () => {
       }
       navigate('/admin');
     } catch (err: any) {
-      alert(err.message || "Une erreur est survenue lors de l'enregistrement.");
+      let msg = err.message || "Une erreur est survenue";
+      if (err.details) {
+        const details = Object.entries(err.details)
+          .map(([field, info]: [string, any]) => `${field}: ${info._errors?.join(', ')}`)
+          .join('\n');
+        msg += `\n\nDétails techniques:\n${details}`;
+      }
+      alert(msg);
     } finally {
       setLoading(false);
     }
