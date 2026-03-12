@@ -1,18 +1,28 @@
-import React, { useEffect, useState } from 'react';
-import { License, LicenseStatus } from '../types';
+import { License, LicenseStatus, LicenseCategory } from '../types';
 import { LicenseService } from '../services/licenseService';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Plus, Search, Edit, Printer, Ban, CheckCircle,
   ChevronLeft, ChevronRight, LayoutDashboard, Users,
   Settings, LogOut, Search as SearchIcon, Filter,
-  MoreVertical, ShieldCheck, AlertCircle, Clock
+  MoreVertical, ShieldCheck, AlertCircle, Clock, RotateCw,
+  Download
 } from 'lucide-react';
+
+import {
+  PieChart, Pie, Cell, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, Tooltip, Legend,
+  CartesianGrid
+} from 'recharts';
 
 export const Dashboard: React.FC = () => {
   const [licenses, setLicenses] = useState<License[]>([]);
   const [search, setSearch] = useState('');
+  const [filterCategory, setFilterCategory] = useState('');
+  const [filterClub, setFilterClub] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [showStats, setShowStats] = useState(false);
   const itemsPerPage = 8;
   const navigate = useNavigate();
 
@@ -50,13 +60,70 @@ export const Dashboard: React.FC = () => {
     navigate('/login');
   };
 
+  const handleExportCSV = () => {
+    if (filteredLicenses.length === 0) return;
+
+    const headers = [
+      "ID", "Nom", "Prenom", "Date Naissance", "Nationalite",
+      "Club", "Categorie", "Type", "Status", "Emission", "Expiration", "Email", "Telephone"
+    ];
+
+    const rows = filteredLicenses.map(l => [
+      l.id, l.lastName, l.firstName, l.birthDate, l.nationality,
+      l.club, l.category, l.type, l.status, l.issueDate, l.expirationDate, l.email, l.phone
+    ]);
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(","))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `licences_fss_export_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Stats Calculation
+  const categoryData = Object.values(licenses.reduce((acc, l) => {
+    acc[l.category] = acc[l.category] || { name: l.category, value: 0 };
+    acc[l.category].value += 1;
+    return acc;
+  }, {} as any));
+
+  const clubData = Object.values(licenses.reduce((acc, l) => {
+    acc[l.club] = acc[l.club] || { name: l.club, value: 0 };
+    acc[l.club].value += 1;
+    return acc;
+  }, {} as any)).sort((a: any, b: any) => b.value - a.value).slice(0, 5);
+
+  const statusData = [
+    { name: 'Valides', value: licenses.filter(l => l.status === LicenseStatus.VALID).length, color: '#00853f' },
+    { name: 'Expirés', value: licenses.filter(l => l.status === LicenseStatus.EXPIRED).length, color: '#fcd116' },
+    { name: 'Désactivés', value: licenses.filter(l => l.status === LicenseStatus.DISABLED).length, color: '#e31b23' },
+  ].filter(s => s.value > 0);
+
+  const COLORS = ['#00853f', '#0ea5e9', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+
   // Filter Logic
-  const filteredLicenses = licenses.filter(l =>
-    l.lastName.toLowerCase().includes(search.toLowerCase()) ||
-    l.firstName.toLowerCase().includes(search.toLowerCase()) ||
-    l.id.toLowerCase().includes(search.toLowerCase()) ||
-    l.club.toLowerCase().includes(search.toLowerCase())
-  );
+  const allClubs = Array.from(new Set(licenses.map(l => l.club))).sort();
+
+  const filteredLicenses = licenses.filter(l => {
+    const matchesSearch =
+      l.lastName.toLowerCase().includes(search.toLowerCase()) ||
+      l.firstName.toLowerCase().includes(search.toLowerCase()) ||
+      l.id.toLowerCase().includes(search.toLowerCase());
+
+    const matchesCategory = !filterCategory || l.category === filterCategory;
+    const matchesClub = !filterClub || l.club === filterClub;
+    const matchesStatus = !filterStatus || l.status === filterStatus;
+
+    return matchesSearch && matchesCategory && matchesClub && matchesStatus;
+  });
 
   // Pagination Logic
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -116,6 +183,33 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center gap-4">
+            <button
+              onClick={() => {
+                setSearch('');
+                setFilterCategory('');
+                setFilterClub('');
+                setFilterStatus('');
+              }}
+              className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-all"
+              title="Réinitialiser les filtres"
+            >
+              <RotateCw size={18} />
+            </button>
+            <button
+              onClick={() => setShowStats(!showStats)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${showStats ? 'bg-fss-green text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+            >
+              <LayoutDashboard size={18} />
+              Statistiques
+            </button>
+            <button
+              onClick={handleExportCSV}
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all shadow-sm"
+              title="Exporter en CSV"
+            >
+              <Download size={18} />
+              <span className="hidden sm:inline">Export CSV</span>
+            </button>
             <Link to="/admin/create" className="btn-primary py-2 px-4 text-sm whitespace-nowrap">
               <Plus size={18} />
               <span className="hidden sm:inline">Créer Licence</span>
@@ -124,6 +218,45 @@ export const Dashboard: React.FC = () => {
         </header>
 
         <div className="p-8 max-w-7xl mx-auto">
+          {/* Filters Bar */}
+          <div className="flex flex-wrap gap-4 mb-8">
+            <div className="flex-1 min-w-[200px]">
+              <div className="relative group">
+                <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                <input
+                  type="text"
+                  placeholder="Rechercher..."
+                  className="w-full bg-white border border-slate-200 rounded-xl py-2 pl-10 pr-4 focus:ring-2 focus:ring-fss-green/20 focus:border-fss-green transition-all text-sm outline-none shadow-sm"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+            </div>
+            <select
+              value={filterCategory}
+              onChange={e => setFilterCategory(e.target.value)}
+              className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm text-slate-600 outline-none focus:ring-2 focus:ring-fss-green/20 shadow-sm"
+            >
+              <option value="">Toutes Catégories</option>
+              {Object.values(LicenseCategory).map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <select
+              value={filterClub}
+              onChange={e => setFilterClub(e.target.value)}
+              className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm text-slate-600 outline-none focus:ring-2 focus:ring-fss-green/20 max-w-[200px] shadow-sm"
+            >
+              <option value="">Tous les Clubs</option>
+              {allClubs.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <select
+              value={filterStatus}
+              onChange={e => setFilterStatus(e.target.value)}
+              className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm text-slate-600 outline-none focus:ring-2 focus:ring-fss-green/20 shadow-sm"
+            >
+              <option value="">Tous les Statuts</option>
+              {Object.values(LicenseStatus).map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
           {/* Stats Bar */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
             <div className="premium-card p-6 flex items-center gap-5">
@@ -154,6 +287,61 @@ export const Dashboard: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {/* Analytics Section */}
+          {showStats && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10 animate-fade-in">
+              <div className="premium-card p-8">
+                <h3 className="text-sm font-bold text-slate-800 mb-6 uppercase tracking-wider">Répartition par Catégorie</h3>
+                <div className="h-[250px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={categoryData}
+                        innerRadius={60}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        {categoryData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                      />
+                      <Legend verticalAlign="middle" align="right" layout="vertical" />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              <div className="premium-card p-8">
+                <h3 className="text-sm font-bold text-slate-800 mb-6 uppercase tracking-wider">Top 5 Clubs</h3>
+                <div className="h-[250px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={clubData} layout="vertical">
+                      <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
+                      <XAxis type="number" hide />
+                      <YAxis
+                        dataKey="name"
+                        type="category"
+                        axisLine={false}
+                        tickLine={false}
+                        width={120}
+                        tick={{ fontSize: 10, fontWeight: 700, fill: '#64748b' }}
+                      />
+                      <Tooltip
+                        cursor={{ fill: '#f8fafc' }}
+                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                      />
+                      <Bar dataKey="value" fill="#00853f" radius={[0, 4, 4, 0]} barSize={20} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Table Card */}
           <div className="premium-card overflow-hidden animate-fade-in shadow-premium">

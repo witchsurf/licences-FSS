@@ -88,8 +88,22 @@ export const LicenseCard: React.FC<LicenseCardProps> = ({ license }) => {
             </div>
 
             {/* QR Code Container */}
-            <div className="h-[14mm] w-[14mm] bg-white p-1 rounded-lg border border-slate-200 shadow-sm shrink-0">
-              <QRCodeSVG value={verifyUrl} size={100} style={{ width: '100%', height: '100%' }} />
+            <div className="h-[14.5mm] w-[14.5mm] bg-white p-0.5 rounded-lg border border-slate-200 shadow-sm shrink-0 flex items-center justify-center">
+              <QRCodeSVG
+                value={verifyUrl}
+                size={120}
+                level="H"
+                includeMargin={false}
+                imageSettings={{
+                  src: "/logo.png",
+                  x: undefined,
+                  y: undefined,
+                  height: 24,
+                  width: 24,
+                  excavate: true,
+                }}
+                style={{ width: '100%', height: '100%' }}
+              />
             </div>
           </div>
         </div>
