@@ -64,6 +64,7 @@ export const LicenseForm: React.FC = () => {
           let type = (data.type as string || '').toLowerCase();
           let finalType = LicenseType.COMPETITION;
           if (type.includes('loisir')) finalType = LicenseType.LOISIR;
+          if (type.includes('pro')) finalType = LicenseType.LIGUE_PRO;
 
           setFormData({
             firstName: data.firstName || '',

@@ -10,6 +10,7 @@ export enum LicenseCategory {
 
 export enum LicenseType {
   COMPETITION = 'Compétition',
+  LIGUE_PRO = 'Ligue Pro',
   LOISIR = 'Loisir'
 }
 

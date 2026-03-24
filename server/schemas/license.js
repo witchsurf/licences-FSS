@@ -10,7 +10,7 @@ export const licenseSchema = z.object({
     email: z.string().email("Email invalide").or(z.literal("")).or(z.null()).optional(),
     club: z.string().min(1, "Le club est requis"),
     category: z.enum(['OPEN', 'JUNIOR', 'CADET', 'MINIME', 'BENJAMIN', 'ONDINE OPEN', 'ONDINE U16']),
-    type: z.enum(['Compétition', 'Loisir']),
+    type: z.enum(['Compétition', 'Ligue Pro', 'Loisir']),
     issueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format de date invalide"),
     expirationDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format de date invalide"),
     photoUrl: z.string().optional(),

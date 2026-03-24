@@ -1,6 +1,6 @@
 import React from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { License } from '../types';
+import { License, LicenseType } from '../types';
 import { Logo } from './Logo';
 
 interface LicenseCardProps {
@@ -10,10 +10,26 @@ interface LicenseCardProps {
 export const LicenseCard: React.FC<LicenseCardProps> = ({ license }) => {
   const verifyUrl = `${window.location.origin}/#/verify/${license.id}`;
 
+  let headerBg = "bg-fss-green";
+  let textClass = "text-white";
+  let headerTitleFr = "Licence Officielle";
+  let headerTitleEn = "Official License";
+
+  if (license.type === LicenseType.LIGUE_PRO) {
+    headerBg = "bg-[#E31B23]";
+    headerTitleFr = "LIGUE PRO";
+    headerTitleEn = "PRO LEAGUE";
+  } else if (license.type === LicenseType.LOISIR) {
+    headerBg = "bg-[#FCD116]";
+    textClass = "text-slate-900";
+    headerTitleFr = "Licence Loisir";
+    headerTitleEn = "Leisure License";
+  }
+
   return (
     <div className="w-[85.6mm] h-[54mm] relative bg-white overflow-hidden shadow-2xl print:shadow-none print:border-0 rounded-2xl print:rounded-none flex flex-col font-sans select-none ring-1 ring-black/5">
       {/* Header Bar */}
-      <div className="h-[14mm] bg-fss-green flex items-center justify-between px-4 relative overflow-hidden">
+      <div className={`h-[14mm] ${headerBg} flex items-center justify-between px-4 relative overflow-hidden`}>
         {/* Dynamic Wave Overlay */}
         <div className="absolute top-0 right-0 h-full w-[40%] opacity-10 flex skew-x-[-20deg] translate-x-5">
           <div className="h-full w-1/3 bg-white"></div>
@@ -26,12 +42,12 @@ export const LicenseCard: React.FC<LicenseCardProps> = ({ license }) => {
             <Logo className="h-7 w-7" />
           </div>
 
-          <div className="text-white flex-1 flex flex-col justify-center">
+          <div className={`${textClass} flex-1 flex flex-col justify-center`}>
             <h1 className="text-[9px] font-black leading-none tracking-tighter uppercase mb-0.5">Fédération Sénégalaise de Surf</h1>
             <div className="flex items-center gap-2">
-              <p className="text-[7px] font-bold tracking-[0.1em] opacity-80 uppercase leading-none">Licence Officielle</p>
-              <div className="h-1 w-1 bg-white/40 rounded-full"></div>
-              <p className="text-[7px] font-bold tracking-[0.1em] opacity-80 uppercase leading-none">Official License</p>
+              <p className="text-[7px] font-bold tracking-[0.1em] opacity-80 uppercase leading-none">{headerTitleFr}</p>
+              <div className={`h-1 w-1 ${license.type === LicenseType.LOISIR ? 'bg-slate-900/40' : 'bg-white/40'} rounded-full`}></div>
+              <p className="text-[7px] font-bold tracking-[0.1em] opacity-80 uppercase leading-none">{headerTitleEn}</p>
             </div>
           </div>
         </div>
