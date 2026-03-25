@@ -63,7 +63,7 @@ export const LicenseService = {
     const formData = new FormData();
     formData.append('photo', file);
 
-    const res = await fetch('/api/upload', {
+    const res = await fetch('/api/licenses/upload', {
       method: 'POST',
       body: formData,
       credentials: 'include',
