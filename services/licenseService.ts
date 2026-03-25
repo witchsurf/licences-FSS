@@ -82,7 +82,19 @@ export const LicenseService = {
       credentials: 'include',
     });
 
-    if (!res.ok) throw new Error('Failed to create license');
+    if (!res.ok) {
+      let errorMsg = 'Failed to create license';
+      try {
+        const errorData = await res.json();
+        errorMsg = errorData.error || errorMsg;
+        const error = new Error(errorMsg) as any;
+        error.details = errorData.details;
+        throw error;
+      } catch (parseErr: any) {
+        if (parseErr.details || parseErr.message !== 'Failed to create license') throw parseErr;
+        throw new Error(errorMsg);
+      }
+    }
     return await res.json();
   },
 

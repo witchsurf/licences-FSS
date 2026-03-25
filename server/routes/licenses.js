@@ -91,7 +91,7 @@ router.get('/:id', async (req, res) => {
 // Create
 router.post('/', authenticate, async (req, res) => {
     const validation = licenseSchema.safeParse(req.body);
-    if (!validation.success) return res.status(400).json({ error: 'Données invalides' });
+    if (!validation.success) return res.status(400).json({ error: 'Données invalides', details: validation.error.format() });
 
     try {
         const { data: newId, error: rpcError } = await supabase.rpc('generate_next_license_id');
@@ -103,7 +103,8 @@ router.post('/', authenticate, async (req, res) => {
 
         res.status(201).json(newLicense);
     } catch (err) {
-        res.status(500).json({ error: 'Erreur lors de la création' });
+        console.error("Erreur lors de la création :", err);
+        res.status(500).json({ error: 'Erreur lors de la création', details: err.message || err });
     }
 });
 
