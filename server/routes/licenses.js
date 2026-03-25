@@ -42,7 +42,8 @@ router.post('/upload', authenticate, upload.single('photo'), async (req, res) =>
 
         res.json({ url: publicData.publicUrl });
     } catch (err) {
-        res.status(500).json({ error: 'Erreur lors de l\'upload' });
+        console.error("Erreur lors de l'upload :", err);
+        res.status(500).json({ error: 'Erreur lors de l\'upload', details: err.message || err });
     }
 });
 

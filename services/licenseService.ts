@@ -69,7 +69,15 @@ export const LicenseService = {
       credentials: 'include',
     });
 
-    if (!res.ok) throw new Error('Upload failed');
+    if (!res.ok) {
+      let errorMsg = 'Upload failed';
+      try {
+        const errorData = await res.json();
+        errorMsg = errorData.error || errorMsg;
+        if (errorData.details) errorMsg += `: ${typeof errorData.details === 'object' ? JSON.stringify(errorData.details) : errorData.details}`;
+      } catch (e) {}
+      throw new Error(errorMsg);
+    }
     const data = await res.json();
     return data.url;
   },
