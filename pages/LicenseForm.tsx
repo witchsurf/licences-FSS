@@ -126,10 +126,18 @@ export const LicenseForm: React.FC = () => {
     } catch (err: any) {
       let msg = err.message || "Une erreur est survenue";
       if (err.details) {
-        const details = Object.entries(err.details)
-          .map(([field, info]: [string, any]) => `${field}: ${info._errors?.join(', ')}`)
-          .join('\n');
-        msg += `\n\nDétails techniques:\n${details}`;
+        if (typeof err.details === 'string') {
+          msg += `\n\nErreur serveur:\n${err.details}`;
+        } else {
+          try {
+            const details = Object.entries(err.details)
+              .map(([field, info]: [string, any]) => `${field}: ${info._errors?.join(', ')}`)
+              .join('\n');
+            msg += `\n\nDétails techniques:\n${details}`;
+          } catch (e) {
+            msg += `\n\nDétails:\n${JSON.stringify(err.details)}`;
+          }
+        }
       }
       alert(msg);
     } finally {
