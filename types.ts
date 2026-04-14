@@ -20,6 +20,12 @@ export enum LicenseStatus {
   DISABLED = 'DÉSACTIVÉ'
 }
 
+export enum DocumentType {
+  PASSPORT = 'Passeport',
+  CARTE_IDENTITE = "Carte d'identité",
+  EXTRAIT_NAISSANCE = 'Extrait de naissance'
+}
+
 export interface License {
   id: string; // The specific FSS-YYYY-XXXXXX format
   firstName: string;
@@ -35,6 +41,8 @@ export interface License {
   issueDate: string;
   expirationDate: string;
   photoUrl: string;
+  documentUrl?: string;
+  documentType?: DocumentType;
   status: LicenseStatus;
   createdAt: number;
 }

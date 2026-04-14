@@ -14,6 +14,8 @@ CREATE TABLE licenses (
   "issueDate" text NOT NULL,
   "expirationDate" text NOT NULL,
   "photoUrl" text,
+  "documentUrl" text,
+  "documentType" text,
   status text NOT NULL DEFAULT 'VALIDE', -- VALIDE, EXPIRÉ, DÉSACTIVÉ
   "createdAt" bigint NOT NULL
 );
@@ -32,6 +34,7 @@ CREATE POLICY "Public Read Access" ON licenses
 -- You need to create a bucket named 'licenses-photos' in the Storage dashboard.
 -- Or run this if you have the extensions enabled:
 INSERT INTO storage.buckets (id, name, public) VALUES ('licenses-photos', 'licenses-photos', true);
+INSERT INTO storage.buckets (id, name, public) VALUES ('licenses-documents', 'licenses-documents', true);
 
 -- Storage Policy
 CREATE POLICY "Public Access to Photos" ON storage.objects
@@ -39,6 +42,12 @@ CREATE POLICY "Public Access to Photos" ON storage.objects
 
 CREATE POLICY "Authenticated Uploads" ON storage.objects
   FOR INSERT WITH CHECK (bucket_id = 'licenses-photos');
+
+CREATE POLICY "Public Access to Documents" ON storage.objects
+  FOR SELECT USING (bucket_id = 'licenses-documents');
+
+CREATE POLICY "Authenticated Uploads to Documents" ON storage.objects
+  FOR INSERT WITH CHECK (bucket_id = 'licenses-documents');
 
 -- Sequence for License IDs
 CREATE SEQUENCE IF NOT EXISTS license_seq START 1;

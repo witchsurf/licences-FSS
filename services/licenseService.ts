@@ -82,6 +82,29 @@ export const LicenseService = {
     return data.url;
   },
 
+  uploadDocument: async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('document', file);
+
+    const res = await fetch('/api/licenses/upload-document', {
+      method: 'POST',
+      body: formData,
+      credentials: 'include',
+    });
+
+    if (!res.ok) {
+      let errorMsg = 'Échec de l\'upload du document';
+      try {
+        const errorData = await res.json();
+        errorMsg = errorData.error || errorMsg;
+        if (errorData.details) errorMsg += `: ${typeof errorData.details === 'object' ? JSON.stringify(errorData.details) : errorData.details}`;
+      } catch (e) {}
+      throw new Error(errorMsg);
+    }
+    const data = await res.json();
+    return data.url;
+  },
+
   create: async (data: Omit<License, 'id' | 'status' | 'createdAt'>): Promise<License> => {
     const res = await fetch('/api/licenses', {
       method: 'POST',

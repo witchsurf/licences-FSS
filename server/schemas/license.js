@@ -14,6 +14,8 @@ export const licenseSchema = z.object({
     issueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format de date invalide"),
     expirationDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format de date invalide"),
     photoUrl: z.string().optional(),
+    documentUrl: z.string().optional(),
+    documentType: z.enum(["Passeport", "Carte d'identité", "Extrait de naissance"]).optional(),
 });
 
 export const updateLicenseSchema = licenseSchema.partial();

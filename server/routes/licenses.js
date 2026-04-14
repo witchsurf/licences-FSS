@@ -21,7 +21,7 @@ const upload = multer({
     }
 });
 
-// File Upload
+// File Upload (Photo)
 router.post('/upload', authenticate, upload.single('photo'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'Aucun fichier fourni' });
 
@@ -44,6 +44,45 @@ router.post('/upload', authenticate, upload.single('photo'), async (req, res) =>
     } catch (err) {
         console.error("Erreur lors de l'upload :", err);
         res.status(500).json({ error: 'Erreur lors de l\'upload', details: err.message || err });
+    }
+});
+
+// Document Upload (Passport, ID Card, Birth Certificate)
+const documentUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB for documents
+    fileFilter: (req, file, cb) => {
+        const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+        if (allowedMimes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Format non supporté. Formats acceptés : JPEG, PNG, WebP, PDF'));
+        }
+    }
+});
+
+router.post('/upload-document', authenticate, documentUpload.single('document'), async (req, res) => {
+    if (!req.file) return res.status(400).json({ error: 'Aucun fichier fourni' });
+
+    try {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const ext = path.extname(req.file.originalname);
+        const fileName = `document-${uniqueSuffix}${ext}`;
+
+        const { error } = await supabase.storage
+            .from('licenses-documents')
+            .upload(fileName, req.file.buffer, { contentType: req.file.mimetype });
+
+        if (error) throw error;
+
+        const { data: publicData } = supabase.storage
+            .from('licenses-documents')
+            .getPublicUrl(fileName);
+
+        res.json({ url: publicData.publicUrl });
+    } catch (err) {
+        console.error("Erreur lors de l'upload du document :", err);
+        res.status(500).json({ error: 'Erreur lors de l\'upload du document', details: err.message || err });
     }
 });
 

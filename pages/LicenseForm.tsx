@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { LicenseService } from '../services/licenseService';
-import { LicenseCategory, LicenseType } from '../types';
+import { LicenseCategory, LicenseType, DocumentType } from '../types';
 import {
   ArrowLeft, Camera, Save, User, MapPin,
   Phone, Mail, Building2, Calendar, ShieldCheck,
-  Upload, Info
+  Upload, Info, FileText, X, CheckCircle2, AlertCircle
 } from 'lucide-react';
 
 export const LicenseForm: React.FC = () => {
@@ -14,6 +14,9 @@ export const LicenseForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [documentFile, setDocumentFile] = useState<File | null>(null);
+  const [documentPreview, setDocumentPreview] = useState<string | null>(null);
+  const [documentFileName, setDocumentFileName] = useState<string | null>(null);
 
   const predefinedClubs = [
     'SURF CLUB NGOR',
@@ -42,6 +45,8 @@ export const LicenseForm: React.FC = () => {
     issueDate: new Date().toISOString().split('T')[0],
     expirationDate: '',
     photoUrl: '',
+    documentUrl: '',
+    documentType: '' as any,
   });
 
   useEffect(() => {
@@ -80,8 +85,14 @@ export const LicenseForm: React.FC = () => {
             issueDate: data.issueDate || '',
             expirationDate: data.expirationDate || '',
             photoUrl: data.photoUrl || '',
+            documentUrl: data.documentUrl || '',
+            documentType: data.documentType || '' as any,
           });
           setPhotoPreview(data.photoUrl);
+          if (data.documentUrl) {
+            setDocumentPreview(data.documentUrl);
+            setDocumentFileName('Document existant');
+          }
           if (data.club && !predefinedClubs.includes(data.club)) {
             setIsOtherClub(true);
           }
@@ -147,6 +158,35 @@ export const LicenseForm: React.FC = () => {
     }
   };
 
+  const handleDocumentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+      if (!allowedTypes.includes(file.type)) {
+        alert('Format non supporté. Formats acceptés : JPEG, PNG, WebP, PDF');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Le fichier est trop volumineux. Taille max : 5 Mo');
+        return;
+      }
+      setDocumentFile(file);
+      setDocumentFileName(file.name);
+      if (file.type.startsWith('image/')) {
+        setDocumentPreview(URL.createObjectURL(file));
+      } else {
+        setDocumentPreview(null); // PDF — no image preview
+      }
+    }
+  };
+
+  const removeDocument = () => {
+    setDocumentFile(null);
+    setDocumentPreview(null);
+    setDocumentFileName(null);
+    setFormData({ ...formData, documentUrl: '', documentType: '' as any });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -157,7 +197,17 @@ export const LicenseForm: React.FC = () => {
         photoUrl = await LicenseService.uploadPhoto(photoFile);
       }
 
-      const finalData = { ...formData, photoUrl };
+      let documentUrl = formData.documentUrl;
+      if (documentFile) {
+        documentUrl = await LicenseService.uploadDocument(documentFile);
+      }
+
+      const finalData = { ...formData, photoUrl, documentUrl };
+      // Remove empty documentType if not set
+      if (!finalData.documentType) {
+        delete (finalData as any).documentType;
+        delete (finalData as any).documentUrl;
+      }
 
       if (id) {
         await LicenseService.update(id, finalData);
@@ -271,6 +321,84 @@ export const LicenseForm: React.FC = () => {
                   required
                 />
               </div>
+            </div>
+
+            {/* Document Upload Section */}
+            <div className="premium-card p-6 space-y-4">
+              <h3 className="text-sm font-bold flex items-center gap-2 mb-4">
+                <FileText size={18} className="text-blue-600" />
+                Document d'Identité
+              </h3>
+              <p className="text-[11px] text-slate-500 leading-relaxed -mt-2">
+                Téléchargez une copie d'un document officiel : passeport, carte d'identité ou extrait de naissance.
+              </p>
+
+              <div>
+                <label className={labelClasses}>Type de Document</label>
+                <select
+                  value={formData.documentType || ''}
+                  onChange={e => setFormData({ ...formData, documentType: e.target.value as DocumentType })}
+                  className={inputClasses}
+                >
+                  <option value="">Sélectionner...</option>
+                  {Object.values(DocumentType).map(v => <option key={v} value={v}>{v}</option>)}
+                </select>
+              </div>
+
+              {/* Upload Zone */}
+              {!documentFileName ? (
+                <label className="relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-200 rounded-2xl cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-all group">
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,application/pdf"
+                    onChange={handleDocumentChange}
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                  />
+                  <div className="flex flex-col items-center gap-2 text-slate-400 group-hover:text-blue-500 transition-colors">
+                    <Upload size={28} strokeWidth={1.5} />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">Choisir un fichier</span>
+                    <span className="text-[9px] text-slate-400">JPEG, PNG, WebP ou PDF — Max 5 Mo</span>
+                  </div>
+                </label>
+              ) : (
+                <div className="relative bg-slate-50 border border-slate-200 rounded-2xl p-4 animate-fade-in">
+                  <button
+                    type="button"
+                    onClick={removeDocument}
+                    className="absolute top-2 right-2 p-1 bg-white border border-slate-200 rounded-full hover:bg-red-50 hover:border-red-200 hover:text-red-500 text-slate-400 transition-all shadow-sm"
+                  >
+                    <X size={14} />
+                  </button>
+                  <div className="flex items-center gap-3">
+                    {documentPreview ? (
+                      <img src={documentPreview} alt="Aperçu" className="h-16 w-16 rounded-xl object-cover border border-slate-200 shadow-sm" />
+                    ) : (
+                      <div className="h-16 w-16 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center">
+                        <FileText size={24} className="text-red-500" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-slate-700 truncate">{documentFileName}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <CheckCircle2 size={12} className="text-emerald-500" />
+                        <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">Fichier prêt</span>
+                        {formData.documentUrl && documentFileName === 'Document existant' && (
+                           <a href={formData.documentUrl} target="_blank" rel="noopener noreferrer" className="ml-2 text-[10px] text-blue-600 hover:text-blue-800 underline font-medium">
+                             Voir l'original
+                           </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {formData.documentType && !documentFileName && !formData.documentUrl && (
+                <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-100 rounded-xl">
+                  <AlertCircle size={14} className="text-amber-600 flex-shrink-0" />
+                  <p className="text-[10px] text-amber-700 font-medium">N'oubliez pas de joindre le document sélectionné.</p>
+                </div>
+              )}
             </div>
           </div>
 
