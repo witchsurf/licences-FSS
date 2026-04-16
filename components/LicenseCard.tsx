@@ -15,10 +15,13 @@ export const LicenseCard: React.FC<LicenseCardProps> = ({ license }) => {
   let headerTitleFr = "Licence Officielle";
   let headerTitleEn = "Official License";
 
+  let logoSrc = "/logo.png";
+
   if (license.type === LicenseType.LIGUE_PRO) {
     headerBg = "bg-[#E31B23]";
     headerTitleFr = "LIGUE PRO";
     headerTitleEn = "PRO LEAGUE";
+    logoSrc = "/ligue_pro_logo.png";
   } else if (license.type === LicenseType.LOISIR) {
     headerBg = "bg-[#FCD116]";
     textClass = "text-slate-900";
@@ -39,7 +42,7 @@ export const LicenseCard: React.FC<LicenseCardProps> = ({ license }) => {
 
         <div className="flex items-center gap-3 z-10 w-full">
           <div className="bg-white rounded-xl p-1.5 shadow-[0_2px_10px_rgba(0,0,0,0.1)] shrink-0">
-            <Logo className="h-7 w-7" />
+            <Logo className="h-7 w-7" src={logoSrc} />
           </div>
 
           <div className={`${textClass} flex-1 flex flex-col justify-center`}>
@@ -111,7 +114,7 @@ export const LicenseCard: React.FC<LicenseCardProps> = ({ license }) => {
                 level="H"
                 includeMargin={false}
                 imageSettings={{
-                  src: "/logo.png",
+                  src: logoSrc,
                   x: undefined,
                   y: undefined,
                   height: 24,
