@@ -41,8 +41,8 @@ export const LicenseCard: React.FC<LicenseCardProps> = ({ license }) => {
         </div>
 
         <div className="flex items-center gap-3 z-10 w-full">
-          <div className="bg-white rounded-xl p-1.5 shadow-[0_2px_10px_rgba(0,0,0,0.1)] shrink-0">
-            <Logo className="h-7 w-7" src={logoSrc} />
+          <div className="bg-white rounded-xl p-1 shadow-[0_2px_10px_rgba(0,0,0,0.1)] shrink-0">
+            <Logo className="h-10 w-10" src={logoSrc} />
           </div>
 
           <div className={`${textClass} flex-1 flex flex-col justify-center`}>
