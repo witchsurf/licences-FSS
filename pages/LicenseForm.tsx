@@ -106,22 +106,15 @@ export const LicenseForm: React.FC = () => {
     init();
   }, [id, navigate]);
 
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (!file.type.startsWith('image/')) {
-        alert("Veuillez sélectionner une image valide.");
-        return;
-      }
-
+  const compressImage = (file: File, maxDim: number, quality: number): Promise<File> => {
+    return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onloadend = (event) => {
+      reader.onload = (event) => {
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
           let width = img.width;
           let height = img.height;
-          const maxDim = 800;
 
           if (width > height) {
             if (width > maxDim) {
@@ -146,19 +139,42 @@ export const LicenseForm: React.FC = () => {
                   type: 'image/jpeg',
                   lastModified: Date.now(),
                 });
-                setPhotoFile(compressedFile);
-                setPhotoPreview(URL.createObjectURL(compressedFile));
+                resolve(compressedFile);
+              } else {
+                reject(new Error("Erreur lors de la compression de l'image"));
               }
-            }, 'image/jpeg', 0.8);
+            }, 'image/jpeg', quality);
+          } else {
+            reject(new Error("Impossible d'obtenir le contexte canvas"));
           }
         };
+        img.onerror = () => reject(new Error("Erreur de chargement de l'image"));
         img.src = event.target?.result as string;
       };
+      reader.onerror = () => reject(new Error("Erreur de lecture du fichier"));
       reader.readAsDataURL(file);
+    });
+  };
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        alert("Veuillez sélectionner une image valide.");
+        return;
+      }
+
+      try {
+        const compressedFile = await compressImage(file, 800, 0.8);
+        setPhotoFile(compressedFile);
+        setPhotoPreview(URL.createObjectURL(compressedFile));
+      } catch (err: any) {
+        alert(err.message);
+      }
     }
   };
 
-  const handleDocumentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDocumentChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
@@ -166,16 +182,29 @@ export const LicenseForm: React.FC = () => {
         alert('Format non supporté. Formats acceptés : JPEG, PNG, WebP, PDF');
         return;
       }
-      if (file.size > 5 * 1024 * 1024) {
-        alert('Le fichier est trop volumineux. Taille max : 5 Mo');
+      
+      // We don't check file.size here if it's an image, because we're going to compress it anyway.
+      // But for PDF, we still need to keep an eye on it or alert if it's too big since we can't compress it.
+      if (file.type === 'application/pdf' && file.size > 5 * 1024 * 1024) {
+        alert('Le fichier PDF est trop volumineux. Taille max : 5 Mo');
         return;
       }
-      setDocumentFile(file);
-      setDocumentFileName(file.name);
-      if (file.type.startsWith('image/')) {
-        setDocumentPreview(URL.createObjectURL(file));
-      } else {
-        setDocumentPreview(null); // PDF — no image preview
+
+      try {
+        let fileToUpload = file;
+        
+        if (file.type.startsWith('image/')) {
+          // Compress documents to 1600px max (better resolution for text readability)
+          fileToUpload = await compressImage(file, 1600, 0.75);
+          setDocumentPreview(URL.createObjectURL(fileToUpload));
+        } else {
+          setDocumentPreview(null); // PDF — no image preview
+        }
+
+        setDocumentFile(fileToUpload);
+        setDocumentFileName(fileToUpload.name);
+      } catch (err: any) {
+        alert("Erreur lors du traitement du document : " + err.message);
       }
     }
   };
