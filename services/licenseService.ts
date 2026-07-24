@@ -53,6 +53,12 @@ export const LicenseService = {
     return await res.json();
   },
 
+  getClubs: async (): Promise<string[]> => {
+    const res = await fetch('/api/licenses/clubs', { credentials: 'include' });
+    if (!res.ok) throw new Error('Impossible de charger la liste des clubs');
+    return await res.json();
+  },
+
   getById: async (id: string): Promise<License | null> => {
     const res = await fetch(`/api/licenses/${id}`);
     if (!res.ok) return null;

@@ -5,8 +5,12 @@ import jwt from 'jsonwebtoken';
 import { supabase, JWT_SECRET } from '../config/supabase.js';
 import { authenticate } from '../middleware/auth.js';
 import { licenseSchema, updateLicenseSchema, statusSchema } from '../schemas/license.js';
+import { buildClubList, normalizeClubName } from '../../shared/clubs.js';
 
 const router = express.Router();
+const normalizeLicenseClub = (license) => (
+    license ? { ...license, club: normalizeClubName(license.club) } : license
+);
 
 const storage = multer.memoryStorage();
 const upload = multer({
@@ -95,9 +99,23 @@ router.get('/', authenticate, async (req, res) => {
             .order('createdAt', { ascending: false });
 
         if (error) throw error;
-        res.json(data);
+        res.json(data.map(normalizeLicenseClub));
     } catch (err) {
         res.status(500).json({ error: 'Erreur serveur' });
+    }
+});
+
+// Reusable club list, including custom names previously saved through "Autre".
+router.get('/clubs', authenticate, async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('licenses')
+            .select('club');
+
+        if (error) throw error;
+        res.json(buildClubList(data));
+    } catch (err) {
+        res.status(500).json({ error: 'Erreur lors du chargement des clubs' });
     }
 });
 
@@ -122,7 +140,7 @@ router.get('/:id', async (req, res) => {
             delete data.address;
         }
 
-        res.json(data);
+        res.json(normalizeLicenseClub(data));
     } catch (err) {
         res.status(500).json({ error: 'Erreur serveur' });
     }
@@ -137,7 +155,13 @@ router.post('/', authenticate, async (req, res) => {
         const { data: newId, error: rpcError } = await supabase.rpc('generate_next_license_id');
         if (rpcError) throw rpcError;
 
-        const newLicense = { ...validation.data, id: newId, status: 'VALIDE', createdAt: Date.now() };
+        const newLicense = {
+            ...validation.data,
+            club: normalizeClubName(validation.data.club),
+            id: newId,
+            status: 'VALIDE',
+            createdAt: Date.now(),
+        };
         const { error } = await supabase.from('licenses').insert([newLicense]);
         if (error) throw error;
 
@@ -157,7 +181,11 @@ router.put('/:id', authenticate, async (req, res) => {
     }
 
     try {
-        const { error } = await supabase.from('licenses').update(validation.data).eq('id', req.params.id);
+        const updateData = {
+            ...validation.data,
+            ...(validation.data.club && { club: normalizeClubName(validation.data.club) }),
+        };
+        const { error } = await supabase.from('licenses').update(updateData).eq('id', req.params.id);
         if (error) throw error;
         res.json({ success: true });
     } catch (err) {

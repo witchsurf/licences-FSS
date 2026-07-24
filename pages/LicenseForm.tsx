@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { LicenseService } from '../services/licenseService';
 import { LicenseCategory, LicenseType, DocumentType } from '../types';
+import { PREDEFINED_CLUBS } from '../shared/clubs.js';
 import {
   ArrowLeft, Camera, Save, User, MapPin,
   Phone, Mail, Building2, Calendar, ShieldCheck,
@@ -17,17 +18,7 @@ export const LicenseForm: React.FC = () => {
   const [documentFile, setDocumentFile] = useState<File | null>(null);
   const [documentPreview, setDocumentPreview] = useState<string | null>(null);
   const [documentFileName, setDocumentFileName] = useState<string | null>(null);
-
-  const predefinedClubs = [
-    'SURF CLUB NGOR',
-    'TAKEOFF NGOR',
-    'HAPPY SECRET GARDEN',
-    'MALIKA SURF',
-    'COPACABANA SURF VILLAGE',
-    'SURF ATTITUDE',
-    'SOMONE SURF',
-    'BLACK AND WHITE'
-  ];
+  const [availableClubs, setAvailableClubs] = useState<string[]>(PREDEFINED_CLUBS);
 
   const [isOtherClub, setIsOtherClub] = useState(false);
 
@@ -55,6 +46,14 @@ export const LicenseForm: React.FC = () => {
       if (!isAuth) {
         navigate('/login');
         return;
+      }
+
+      let clubs = PREDEFINED_CLUBS;
+      try {
+        clubs = await LicenseService.getClubs();
+        setAvailableClubs(clubs);
+      } catch (error) {
+        console.error('Erreur lors du chargement des clubs :', error);
       }
 
       if (id) {
@@ -93,7 +92,7 @@ export const LicenseForm: React.FC = () => {
             setDocumentPreview(data.documentUrl);
             setDocumentFileName('Document existant');
           }
-          if (data.club && !predefinedClubs.includes(data.club)) {
+          if (data.club && !clubs.includes(data.club)) {
             setIsOtherClub(true);
           }
         }
@@ -537,7 +536,7 @@ export const LicenseForm: React.FC = () => {
                   <label className={labelClasses}>Club Actuel</label>
                   {!isOtherClub ? (
                     <select
-                      value={predefinedClubs.includes(formData.club) ? formData.club : ''}
+                      value={availableClubs.includes(formData.club) ? formData.club : ''}
                       onChange={e => {
                         if (e.target.value === 'Autre') setIsOtherClub(true);
                         else setFormData({ ...formData, club: e.target.value });
@@ -545,7 +544,7 @@ export const LicenseForm: React.FC = () => {
                       className={inputClasses}
                     >
                       <option value="">Sélectionner...</option>
-                      {predefinedClubs.map(c => <option key={c} value={c}>{c}</option>)}
+                      {availableClubs.map(c => <option key={c} value={c}>{c}</option>)}
                       <option value="Autre">Autre / Nouveau...</option>
                     </select>
                   ) : (
