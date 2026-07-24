@@ -2,6 +2,7 @@ import React from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { License, LicenseType } from '../types';
 import { Logo } from './Logo';
+import { AutoFitText } from './AutoFitText';
 
 interface LicenseCardProps {
   license: License;
@@ -79,8 +80,20 @@ export const LicenseCard: React.FC<LicenseCardProps> = ({ license }) => {
             <div className="flex justify-between items-start">
               <div className="min-w-0 flex-1">
                 <p className="text-[6.5px] text-slate-500 uppercase font-black tracking-widest mb-0.5">Titulaire / Holder</p>
-                <p className="text-[12px] font-black text-slate-900 leading-tight uppercase truncate tracking-tight">{license.lastName}</p>
-                <p className="text-[10px] font-bold text-slate-700 leading-tight truncate">{license.firstName}</p>
+                <AutoFitText
+                  maxFontSize={12}
+                  minFontSize={7}
+                  className="font-black text-slate-900 leading-tight uppercase tracking-tight"
+                >
+                  {license.lastName}
+                </AutoFitText>
+                <AutoFitText
+                  maxFontSize={10}
+                  minFontSize={7}
+                  className="font-bold text-slate-700 leading-tight"
+                >
+                  {license.firstName}
+                </AutoFitText>
               </div>
               <div className="text-right shrink-0 ml-2">
                 <p className="text-[6.5px] text-slate-500 uppercase font-black tracking-widest mb-0.5">N° Licence</p>
