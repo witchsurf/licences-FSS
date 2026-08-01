@@ -101,14 +101,20 @@ export const LicenseCard: React.FC<LicenseCardProps> = ({ license }) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 border-t border-slate-100 pt-2">
-              <div>
+            <div className="grid grid-cols-[1.4fr_1fr] gap-2 border-t border-slate-100 pt-2">
+              <div className="min-w-0">
                 <p className="text-[6px] text-slate-400 uppercase font-bold tracking-widest mb-0.5">Club Affilié</p>
-                <p className="text-[8.5px] font-black text-slate-800 leading-tight truncate">{license.club}</p>
+                <AutoFitText
+                  maxFontSize={8.5}
+                  minFontSize={5}
+                  className="font-black text-slate-800 leading-tight uppercase tracking-tight"
+                >
+                  {license.club}
+                </AutoFitText>
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-[6px] text-slate-400 uppercase font-bold tracking-widest mb-0.5">Catégorie</p>
-                <p className="text-[8.5px] font-black text-fss-green leading-tight uppercase">{license.category}</p>
+                <p className="text-[8.5px] font-black text-fss-green leading-tight uppercase truncate">{license.category}</p>
               </div>
             </div>
           </div>
