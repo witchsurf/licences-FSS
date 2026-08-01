@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { License, LicenseStatus, LicenseCategory } from '../types';
+import { License, LicenseStatus, LicenseCategory, LicenseType } from '../types';
 import { LicenseService } from '../services/licenseService';
+import { LicenseCard } from '../components/LicenseCard';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Plus, Search, Edit, Printer, Ban, CheckCircle,
@@ -20,8 +21,10 @@ export const Dashboard: React.FC = () => {
   const [licenses, setLicenses] = useState<License[]>([]);
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
+  const [filterType, setFilterType] = useState('');
   const [filterClub, setFilterClub] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
   const [showStats, setShowStats] = useState(false);
   const itemsPerPage = 8;
@@ -61,22 +64,22 @@ export const Dashboard: React.FC = () => {
     navigate('/login');
   };
 
-  const handleExportCSV = () => {
-    if (filteredLicenses.length === 0) return;
+  const exportLicensesCSV = (licensesToExport: License[]) => {
+    if (licensesToExport.length === 0) return;
 
     const headers = [
       "ID", "Nom", "Prenom", "Date Naissance", "Nationalite",
       "Club", "Categorie", "Type", "Status", "Emission", "Expiration", "Email", "Telephone"
     ];
 
-    const rows = filteredLicenses.map(l => [
+    const rows = licensesToExport.map(l => [
       l.id, l.lastName, l.firstName, l.birthDate, l.nationality,
       l.club, l.category, l.type, l.status, l.issueDate, l.expirationDate, l.email, l.phone
     ]);
 
     const csvContent = [
       headers.join(","),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(","))
+      ...rows.map(row => row.map(cell => `"${String(cell ?? '').replaceAll('"', '""')}"`).join(","))
     ].join("\n");
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -120,10 +123,11 @@ export const Dashboard: React.FC = () => {
       l.id.toLowerCase().includes(search.toLowerCase());
 
     const matchesCategory = !filterCategory || l.category === filterCategory;
+    const matchesType = !filterType || l.type === filterType;
     const matchesClub = !filterClub || l.club === filterClub;
     const matchesStatus = !filterStatus || l.status === filterStatus;
 
-    return matchesSearch && matchesCategory && matchesClub && matchesStatus;
+    return matchesSearch && matchesCategory && matchesType && matchesClub && matchesStatus;
   });
 
   // Pagination Logic
@@ -131,9 +135,35 @@ export const Dashboard: React.FC = () => {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentLicenses = filteredLicenses.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredLicenses.length / itemsPerPage) || 1;
+  const selectedLicenses = licenses.filter(license => selectedIds.has(license.id));
+  const allCurrentPageSelected = currentLicenses.length > 0 && currentLicenses.every(license => selectedIds.has(license.id));
+
+  const toggleLicenseSelection = (id: string) => {
+    setSelectedIds(previous => {
+      const next = new Set(previous);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleCurrentPageSelection = () => {
+    setSelectedIds(previous => {
+      const next = new Set(previous);
+      if (allCurrentPageSelected) currentLicenses.forEach(license => next.delete(license.id));
+      else currentLicenses.forEach(license => next.add(license.id));
+      return next;
+    });
+  };
+
+  const handleBatchPrint = () => {
+    if (selectedLicenses.length === 0) return;
+    window.print();
+  };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <>
+    <div className="min-h-screen bg-slate-50 flex no-print">
       {/* Sidebar - Desktop */}
       <aside className="hidden lg:flex w-72 bg-slate-900 flex-col fixed h-full z-20">
         <div className="p-8">
@@ -179,7 +209,7 @@ export const Dashboard: React.FC = () => {
                 placeholder="Rechercher une licence, un nom ou un club..."
                 className="w-full bg-slate-100 border-none rounded-xl py-2 pl-10 pr-4 focus:ring-2 focus:ring-fss-green/20 transition-all text-sm"
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
               />
             </div>
           </div>
@@ -188,8 +218,10 @@ export const Dashboard: React.FC = () => {
               onClick={() => {
                 setSearch('');
                 setFilterCategory('');
+                setFilterType('');
                 setFilterClub('');
                 setFilterStatus('');
+                setCurrentPage(1);
               }}
               className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-all"
               title="Réinitialiser les filtres"
@@ -204,7 +236,7 @@ export const Dashboard: React.FC = () => {
               Statistiques
             </button>
             <button
-              onClick={handleExportCSV}
+              onClick={() => exportLicensesCSV(filteredLicenses)}
               className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all shadow-sm"
               title="Exporter en CSV"
             >
@@ -229,21 +261,29 @@ export const Dashboard: React.FC = () => {
                   placeholder="Rechercher..."
                   className="w-full bg-white border border-slate-200 rounded-xl py-2 pl-10 pr-4 focus:ring-2 focus:ring-fss-green/20 focus:border-fss-green transition-all text-sm outline-none shadow-sm"
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
                 />
               </div>
             </div>
             <select
               value={filterCategory}
-              onChange={e => setFilterCategory(e.target.value)}
+              onChange={e => { setFilterCategory(e.target.value); setCurrentPage(1); }}
               className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm text-slate-600 outline-none focus:ring-2 focus:ring-fss-green/20 shadow-sm"
             >
               <option value="">Toutes Catégories</option>
               {Object.values(LicenseCategory).map(c => <option key={c} value={c}>{c}</option>)}
             </select>
             <select
+              value={filterType}
+              onChange={e => { setFilterType(e.target.value); setCurrentPage(1); }}
+              className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm text-slate-600 outline-none focus:ring-2 focus:ring-fss-green/20 shadow-sm"
+            >
+              <option value="">Tous les Types</option>
+              {Object.values(LicenseType).map(type => <option key={type} value={type}>{type}</option>)}
+            </select>
+            <select
               value={filterClub}
-              onChange={e => setFilterClub(e.target.value)}
+              onChange={e => { setFilterClub(e.target.value); setCurrentPage(1); }}
               className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm text-slate-600 outline-none focus:ring-2 focus:ring-fss-green/20 max-w-[200px] shadow-sm"
             >
               <option value="">Tous les Clubs</option>
@@ -251,13 +291,43 @@ export const Dashboard: React.FC = () => {
             </select>
             <select
               value={filterStatus}
-              onChange={e => setFilterStatus(e.target.value)}
+              onChange={e => { setFilterStatus(e.target.value); setCurrentPage(1); }}
               className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm text-slate-600 outline-none focus:ring-2 focus:ring-fss-green/20 shadow-sm"
             >
               <option value="">Tous les Statuts</option>
               {Object.values(LicenseStatus).map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
+          {selectedLicenses.length > 0 && (
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-fss-green/20 bg-fss-green/5 px-5 py-4">
+              <div>
+                <p className="font-bold text-slate-900">{selectedLicenses.length} licence{selectedLicenses.length > 1 ? 's' : ''} sélectionnée{selectedLicenses.length > 1 ? 's' : ''}</p>
+                <button
+                  type="button"
+                  onClick={() => setSelectedIds(new Set())}
+                  className="text-xs font-semibold text-slate-500 hover:text-slate-700"
+                >
+                  Effacer la sélection
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => exportLicensesCSV(selectedLicenses)}
+                  className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm hover:bg-slate-50"
+                >
+                  <Download size={17} /> Exporter la sélection
+                </button>
+                <button
+                  type="button"
+                  onClick={handleBatchPrint}
+                  className="flex items-center gap-2 rounded-xl bg-fss-green px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-green-700"
+                >
+                  <Printer size={17} /> Imprimer la sélection
+                </button>
+              </div>
+            </div>
+          )}
           {/* Stats Bar */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
             <div className="premium-card p-6 flex items-center gap-5">
@@ -364,6 +434,15 @@ export const Dashboard: React.FC = () => {
               <table className="w-full text-left">
                 <thead>
                   <tr className="bg-slate-50/50 text-slate-400 text-[11px] uppercase tracking-widest font-bold">
+                    <th className="pl-6 pr-2 py-4">
+                      <input
+                        type="checkbox"
+                        aria-label="Sélectionner les licences de cette page"
+                        checked={allCurrentPageSelected}
+                        onChange={toggleCurrentPageSelection}
+                        className="h-4 w-4 rounded border-slate-300 text-fss-green focus:ring-fss-green"
+                      />
+                    </th>
                     <th className="px-8 py-4">Membre / Club</th>
                     <th className="px-6 py-4">ID Licence</th>
                     <th className="px-6 py-4">Catégorie</th>
@@ -374,6 +453,15 @@ export const Dashboard: React.FC = () => {
                 <tbody className="divide-y divide-slate-100">
                   {currentLicenses.map((license) => (
                     <tr key={license.id} className="group hover:bg-slate-50/80 transition-all cursor-default">
+                      <td className="pl-6 pr-2 py-5">
+                        <input
+                          type="checkbox"
+                          aria-label={`Sélectionner ${license.firstName} ${license.lastName}`}
+                          checked={selectedIds.has(license.id)}
+                          onChange={() => toggleLicenseSelection(license.id)}
+                          className="h-4 w-4 rounded border-slate-300 text-fss-green focus:ring-fss-green"
+                        />
+                      </td>
                       <td className="px-8 py-5">
                         <div className="flex items-center gap-4">
                           <img
@@ -428,7 +516,7 @@ export const Dashboard: React.FC = () => {
                   ))}
                   {currentLicenses.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="px-8 py-20 text-center">
+                      <td colSpan={6} className="px-8 py-20 text-center">
                         <div className="flex flex-col items-center gap-3">
                           <div className="h-16 w-16 bg-slate-100 text-slate-300 rounded-full flex items-center justify-center">
                             <SearchIcon size={32} />
@@ -470,5 +558,13 @@ export const Dashboard: React.FC = () => {
         </div>
       </main>
     </div>
+    <div className="hidden print-only batch-print-container">
+      {selectedLicenses.map(license => (
+        <div key={license.id} className="batch-print-card">
+          <LicenseCard license={license} />
+        </div>
+      ))}
+    </div>
+    </>
   );
 };

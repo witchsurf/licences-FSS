@@ -22,5 +22,20 @@
         .print-only {
             display: block !important;
         }
+
+        .batch-print-container {
+            display: grid !important;
+            grid-template-columns: repeat(2, 85.6mm);
+            gap: 8mm 6mm;
+            align-items: start;
+            justify-content: center;
+        }
+
+        .batch-print-card {
+            width: 85.6mm;
+            height: 54mm;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
     }
 }
