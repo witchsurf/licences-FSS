@@ -12,6 +12,18 @@ const normalizeLicenseClub = (license) => (
     license ? { ...license, club: normalizeClubName(license.club) } : license
 );
 
+const saveClub = async (club) => {
+    const name = normalizeClubName(club);
+    if (!name) return;
+
+    const { error } = await supabase
+        .from('clubs')
+        .upsert({ name, normalized_name: name.toUpperCase() }, { onConflict: 'normalized_name' });
+
+    // Keep deployments compatible while the clubs migration is being applied.
+    if (error && error.code !== '42P01' && error.code !== 'PGRST205') throw error;
+};
+
 const storage = multer.memoryStorage();
 const upload = multer({
     storage: storage,
@@ -108,12 +120,24 @@ router.get('/', authenticate, async (req, res) => {
 // Reusable club list, including custom names previously saved through "Autre".
 router.get('/clubs', authenticate, async (req, res) => {
     try {
-        const { data, error } = await supabase
+        const { data: licenses, error } = await supabase
             .from('licenses')
             .select('club');
 
         if (error) throw error;
-        res.json(buildClubList(data));
+
+        const { data: savedClubs, error: clubsError } = await supabase
+            .from('clubs')
+            .select('name');
+
+        if (clubsError && clubsError.code !== '42P01' && clubsError.code !== 'PGRST205') {
+            throw clubsError;
+        }
+
+        res.json(buildClubList([
+            ...licenses,
+            ...(savedClubs || []).map(({ name }) => name),
+        ]));
     } catch (err) {
         res.status(500).json({ error: 'Erreur lors du chargement des clubs' });
     }
@@ -165,6 +189,8 @@ router.post('/', authenticate, async (req, res) => {
         const { error } = await supabase.from('licenses').insert([newLicense]);
         if (error) throw error;
 
+        await saveClub(newLicense.club);
+
         res.status(201).json(newLicense);
     } catch (err) {
         console.error("Erreur lors de la création :", err);
@@ -187,6 +213,7 @@ router.put('/:id', authenticate, async (req, res) => {
         };
         const { error } = await supabase.from('licenses').update(updateData).eq('id', req.params.id);
         if (error) throw error;
+        if (updateData.club) await saveClub(updateData.club);
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: 'Erreur serveur' });
