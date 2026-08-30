@@ -39,3 +39,28 @@
         }
     }
 }
+
+@layer components {
+    .federal-card {
+        position: relative;
+        width: 85.6mm;
+        height: 54mm;
+        overflow: hidden;
+        border-radius: 4mm;
+        background: white;
+        box-shadow: 0 16px 35px rgba(15, 23, 42, 0.18);
+    }
+
+    .federal-card-front { border: 1px solid #dce4ee; }
+    .federal-card-flag { position: absolute; left: 0; top: 0; height: 26mm; width: 20mm; background: linear-gradient(135deg, #00853f 0 33%, #fcd116 33% 66%, #e31b23 66%); clip-path: polygon(0 0, 100% 0, 0 100%); }
+    .federal-card-wave { position: absolute; left: -8%; width: 116%; height: 10mm; border-top: 1.4mm solid #eaf3fb; border-radius: 50%; transform: rotate(-4deg); }
+    .wave-one { top: 18mm; }
+    .wave-two { top: 31mm; transform: rotate(3deg); }
+    .federal-card-back { background: linear-gradient(135deg, #023c6a, #087fbd 58%, #03587e); }
+    .federal-back-flag { position: absolute; inset: 0; opacity: .18; background: repeating-linear-gradient(150deg, transparent 0 18mm, #fff 18mm 19mm, transparent 19mm 37mm); }
+
+    @media print {
+        .federal-print-grid { display: grid !important; grid-template-columns: repeat(2, 85.6mm); gap: 6mm; justify-content: center; }
+        .federal-card { border-radius: 0; box-shadow: none; break-inside: avoid; page-break-inside: avoid; }
+    }
+}

@@ -7,7 +7,7 @@ import {
   Plus, Search, Edit, Printer, Ban, CheckCircle,
   ChevronLeft, ChevronRight, LayoutDashboard, Users,
   Settings, LogOut, Search as SearchIcon, Filter,
-  MoreVertical, ShieldCheck, AlertCircle, Clock, RotateCw,
+  MoreVertical, ShieldCheck, AlertCircle, Clock, RotateCw, BadgeCheck,
   Download
 } from 'lucide-react';
 
@@ -182,6 +182,10 @@ export const Dashboard: React.FC = () => {
             <Link to="/admin/create" className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl font-medium transition-all">
               <Plus size={20} />
               Nouvelle Licence
+            </Link>
+            <Link to="/admin/cadres-federaux" className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl font-medium transition-all">
+              <BadgeCheck size={20} />
+              Cadres fédéraux
             </Link>
           </nav>
         </div>
