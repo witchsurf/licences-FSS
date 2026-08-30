@@ -61,6 +61,8 @@
 
     @media print {
         .federal-print-grid { display: grid !important; grid-template-columns: repeat(2, 85.6mm); gap: 6mm; justify-content: center; }
+        .federal-print-page { break-after: page; page-break-after: always; }
+        .federal-print-page:last-child { break-after: auto; page-break-after: auto; }
         .federal-card { border-radius: 0; box-shadow: none; break-inside: avoid; page-break-inside: avoid; }
     }
 }
