@@ -7,6 +7,7 @@ import { Login } from './pages/Login';
 import { ViewLicense } from './pages/ViewLicense';
 import { PublicVerify } from './pages/PublicVerify';
 import { FederalOfficials } from './pages/FederalOfficials';
+import { FederalOfficialForm } from './pages/FederalOfficialForm';
 
 // Wrapper to conditionally render header
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -38,6 +39,8 @@ const App: React.FC = () => {
           <Route path="/admin/create" element={<LicenseForm />} />
           <Route path="/admin/edit/:id" element={<LicenseForm />} />
           <Route path="/admin/cadres-federaux" element={<FederalOfficials />} />
+          <Route path="/admin/cadres-federaux/nouveau" element={<FederalOfficialForm />} />
+          <Route path="/admin/cadres-federaux/:id/modifier" element={<FederalOfficialForm />} />
           <Route path="/license/:id" element={<ViewLicense />} />
           <Route path="/verify/:id" element={<PublicVerify />} />
         </Routes>

@@ -50,3 +50,26 @@ export interface License {
 export interface UserSession {
   isAuthenticated: boolean;
 }
+
+export const FederalOfficialTitles = [
+  'Président', 'Vice-président', 'Vice-présidente', 'Trésorier',
+  'Secrétaire général', 'Coach', 'Directeur technique national',
+] as const;
+
+export type FederalOfficialTitle = typeof FederalOfficialTitles[number];
+
+export interface FederalOfficial {
+  id: string;
+  title: FederalOfficialTitle;
+  firstName: string;
+  lastName: string;
+  birthDate: string;
+  nationality: string;
+  address: string;
+  phone: string;
+  email: string;
+  issueDate: string;
+  expirationDate: string;
+  photoUrl?: string;
+  createdAt: number;
+}

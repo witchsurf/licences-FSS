@@ -2,13 +2,7 @@ import React from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Logo } from './Logo';
 import { FSS_ORGANIGRAMME_URL } from '../config/federation';
-
-export interface FederalOfficial {
-  id: string;
-  title: string;
-  name?: string;
-  photoUrl?: string;
-}
+import { FederalOfficial } from '../types';
 
 interface FederalOfficialCardProps {
   official: FederalOfficial;
@@ -51,12 +45,12 @@ export const FederalOfficialCard: React.FC<FederalOfficialCardProps> = ({ offici
         <div className="mt-5 flex flex-1 items-center gap-5">
           <div className="min-w-0 flex-1 pl-16">
             <p className="text-[8px] font-bold uppercase tracking-[0.18em] text-sky-700">Cadre fédéral</p>
-            <h2 className="mt-2 text-[23px] font-black leading-[0.92] tracking-tight text-slate-900 uppercase">{official.name || 'NOM À RENSEIGNER'}</h2>
+            <h2 className="mt-2 text-[23px] font-black leading-[0.92] tracking-tight text-slate-900 uppercase">{official.lastName} {official.firstName}</h2>
             <p className="mt-3 text-[12px] font-black leading-tight tracking-wide text-slate-700 uppercase">{official.title}</p>
             <p className="mt-5 font-mono text-[8px] font-bold tracking-[0.12em] text-sky-700">{official.id} <span className="text-slate-400">•</span> MANDAT 2025 – 2028</p>
           </div>
           <div className="h-[154px] w-[122px] shrink-0 overflow-hidden rounded-sm border-2 border-sky-400 bg-slate-100 shadow-lg">
-            {official.photoUrl ? <img src={official.photoUrl} alt={official.name || official.title} className="h-full w-full object-cover" /> : (
+            {official.photoUrl ? <img src={official.photoUrl} alt={`${official.firstName} ${official.lastName}`} className="h-full w-full object-cover" /> : (
               <div className="flex h-full flex-col items-center justify-center bg-gradient-to-br from-slate-200 to-slate-100 text-center">
                 <span className="text-[8px] font-black uppercase tracking-[0.16em] text-slate-400">Photo</span>
                 <span className="mt-1 text-[6px] font-bold uppercase text-slate-400">à renseigner</span>

@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import helmet from 'helmet';
 import authRoutes from './server/routes/auth.js';
 import licenseRoutes from './server/routes/licenses.js';
+import federalOfficialRoutes from './server/routes/federalOfficials.js';
 import { PORT } from './server/config/supabase.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -25,6 +26,7 @@ app.use(express.static(path.join(__dirname, 'dist')));
 // --- API Routes ---
 app.use('/api', authRoutes);
 app.use('/api/licenses', licenseRoutes);
+app.use('/api/federal-officials', federalOfficialRoutes);
 
 // --- Error Handling & Fallback ---
 app.use((err, req, res, next) => {
