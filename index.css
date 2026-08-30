@@ -60,8 +60,8 @@
     .federal-back-flag { position: absolute; inset: 0; opacity: .18; background: repeating-linear-gradient(150deg, transparent 0 18mm, #fff 18mm 19mm, transparent 19mm 37mm); }
 
     @media print {
-        .federal-print-grid { display: grid !important; grid-template-columns: repeat(2, 85.6mm); gap: 6mm; justify-content: center; }
-        .federal-print-page { break-after: page; page-break-after: always; }
+        .federal-print-grid { display: grid !important; grid-template-columns: repeat(auto-fit, 85.6mm); gap: 6mm; justify-content: center; align-content: center; }
+        .federal-print-page { min-height: 277mm; break-after: page; page-break-after: always; }
         .federal-print-page:last-child { break-after: auto; page-break-after: auto; }
         .federal-card { border-radius: 0; box-shadow: none; break-inside: avoid; page-break-inside: avoid; }
     }
