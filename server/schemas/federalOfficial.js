@@ -15,6 +15,8 @@ export const federalOfficialSchema = z.object({
   issueDate: date,
   expirationDate: date,
   photoUrl: z.string().optional(),
+  photoPositionX: z.number().min(0).max(100).optional(),
+  photoPositionY: z.number().min(0).max(100).optional(),
 });
 
 export const updateFederalOfficialSchema = federalOfficialSchema.partial();

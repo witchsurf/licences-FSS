@@ -71,5 +71,7 @@ export interface FederalOfficial {
   issueDate: string;
   expirationDate: string;
   photoUrl?: string;
+  photoPositionX?: number;
+  photoPositionY?: number;
   createdAt: number;
 }
