@@ -75,7 +75,7 @@ router.post('/initialize', (req, res) => {
       return res.status(400).json({ error: 'L\'entité a déjà été configurée' });
     }
 
-    const { entityName, entityLogo, entityAddress, entityPhone, entityEmail, adminPassword } = req.body;
+    const { entityName, entityAcronym, entityLogo, entityAddress, entityPhone, entityEmail, adminPassword } = req.body;
 
     if (!entityName || !adminPassword) {
       return res.status(400).json({ error: 'Le nom de l\'entité et le mot de passe admin sont requis' });
@@ -83,6 +83,7 @@ router.post('/initialize', (req, res) => {
 
     // Save entity config
     db.setEntityConfig('entityName', entityName);
+    if (entityAcronym) db.setEntityConfig('entityAcronym', entityAcronym.toUpperCase());
     if (entityLogo) db.setEntityConfig('entityLogo', entityLogo);
     if (entityAddress) db.setEntityConfig('entityAddress', entityAddress);
     if (entityPhone) db.setEntityConfig('entityPhone', entityPhone);

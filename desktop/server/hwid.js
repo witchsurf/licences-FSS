@@ -5,7 +5,7 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 const LOCK_ALGORITHM = 'aes-256-gcm';
-const LOCK_KEY = Buffer.from('4c69636d67722d6465736b746f702d687769642d6b65792d3230323621', 'hex').subarray(0, 32);
+const LOCK_KEY = crypto.createHash('sha256').update('licences-manager-desktop-hwid-salt-2026!').digest();
 
 /**
  * Generate a hardware fingerprint based on machine-specific identifiers.
