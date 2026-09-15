@@ -1,12 +1,20 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LogOut, LayoutDashboard } from 'lucide-react';
 import { LicenseService } from '../services/licenseService';
+import { SetupService, EntityConfig } from '../services/setupService';
 import { Logo } from './Logo';
 
 export const Header: React.FC = () => {
   const navigate = useNavigate();
   const isAdmin = LicenseService.isAuthenticated();
+  const [entityConfig, setEntityConfig] = useState<EntityConfig | null>(null);
+
+  useEffect(() => {
+    SetupService.getStatus().then((cfg) => {
+      setEntityConfig(cfg);
+    });
+  }, []);
 
   const handleLogout = async () => {
     await LicenseService.logout();
@@ -14,23 +22,38 @@ export const Header: React.FC = () => {
     navigate('/login');
   };
 
+  const displayName = entityConfig?.entityName || 'Licences Manager';
+  const displayLogo = entityConfig?.entityLogo;
+
   return (
-    <header className="bg-white shadow-md border-b-4 border-fss-green no-print">
+    <header className="bg-white shadow-md border-b-4 border-emerald-600 no-print">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-20 items-center">
           <Link to="/" className="flex items-center gap-4 group">
-            <Logo className="h-14 w-14 group-hover:scale-105 transition-transform" />
+            {displayLogo ? (
+              <img 
+                src={displayLogo} 
+                alt={displayName} 
+                className="h-14 w-14 object-contain rounded-xl group-hover:scale-105 transition-transform" 
+              />
+            ) : (
+              <Logo className="h-14 w-14 group-hover:scale-105 transition-transform" />
+            )}
             
             <div className="flex flex-col">
-              <span className="text-xl font-black text-fss-green tracking-tight uppercase">Fédération Sénégalaise de Surf</span>
-              <span className="text-sm font-medium text-gray-500">Gestion des Licences Officielles</span>
+              <span className="text-xl font-black text-slate-900 tracking-tight uppercase">
+                {displayName}
+              </span>
+              <span className="text-sm font-medium text-emerald-700">
+                Gestion des Licences Officielles
+              </span>
             </div>
           </Link>
           
           <div className="flex items-center gap-4">
             {isAdmin ? (
               <>
-                <Link to="/admin" className="text-gray-600 hover:text-fss-green flex items-center gap-2 font-medium">
+                <Link to="/admin" className="text-gray-600 hover:text-emerald-600 flex items-center gap-2 font-medium">
                   <LayoutDashboard size={18} />
                   <span className="hidden sm:inline">Tableau de bord</span>
                 </Link>
@@ -43,17 +66,13 @@ export const Header: React.FC = () => {
                 </button>
               </>
             ) : (
-               <Link to="/login" className="text-fss-green font-medium hover:underline">Connexion Admin</Link>
+               <Link to="/login" className="text-emerald-700 font-medium hover:underline">Connexion Admin</Link>
             )}
           </div>
         </div>
       </div>
-      {/* Flag Strip */}
-      <div className="h-1.5 w-full flex">
-        <div className="h-full w-1/3 bg-fss-green"></div>
-        <div className="h-full w-1/3 bg-fss-yellow"></div>
-        <div className="h-full w-1/3 bg-fss-red"></div>
-      </div>
+      {/* Sleek accent strip */}
+      <div className="h-1.5 w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600"></div>
     </header>
   );
 };

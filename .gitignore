@@ -12,6 +12,17 @@ dist
 dist-ssr
 *.local
 
+# Desktop build artifacts
+desktop/node_modules
+desktop/dist
+desktop/release
+desktop/build/icon.iconset
+*.license
+.license
+*.db
+*.db-shm
+*.db-wal
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
