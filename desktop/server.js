@@ -10,6 +10,7 @@ const licenseRoutes = require('./server/routes/licenses');
 const federalOfficialRoutes = require('./server/routes/federalOfficials');
 const setupRoutes = require('./server/routes/setup');
 const activationRoutes = require('./server/routes/activation');
+const backupRoutes = require('./server/routes/backup');
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use('/api/licenses', licenseRoutes);
 app.use('/api/federal-officials', federalOfficialRoutes);
 app.use('/api/setup', setupRoutes);
 app.use('/api/activation', activationRoutes);
+app.use('/api/backup', backupRoutes);
 
 // --- Error Handling & Fallback ---
 app.use((err, req, res, next) => {

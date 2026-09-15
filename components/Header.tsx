@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { LogOut, LayoutDashboard } from 'lucide-react';
+import { LogOut, LayoutDashboard, Settings } from 'lucide-react';
 import { LicenseService } from '../services/licenseService';
 import { SetupService, EntityConfig } from '../services/setupService';
 import { Logo } from './Logo';
@@ -56,6 +56,10 @@ export const Header: React.FC = () => {
                 <Link to="/admin" className="text-gray-600 hover:text-emerald-600 flex items-center gap-2 font-medium">
                   <LayoutDashboard size={18} />
                   <span className="hidden sm:inline">Tableau de bord</span>
+                </Link>
+                <Link to="/admin/settings" className="text-gray-600 hover:text-emerald-600 flex items-center gap-2 font-medium">
+                  <Settings size={18} />
+                  <span className="hidden sm:inline">Paramètres</span>
                 </Link>
                 <button 
                   onClick={handleLogout}

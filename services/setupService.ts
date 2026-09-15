@@ -81,4 +81,61 @@ export const SetupService = {
 
     return await res.json();
   },
+
+  getFullConfig: async (): Promise<Record<string, string>> => {
+    try {
+      const res = await fetch('/api/setup/config', { credentials: 'include' });
+      if (!res.ok) return {};
+      return await res.json();
+    } catch {
+      return {};
+    }
+  },
+
+  updateConfig: async (payload: Partial<SetupPayload>): Promise<boolean> => {
+    const res = await fetch('/api/setup/config', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      credentials: 'include',
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Erreur lors de la mise à jour des paramètres');
+    }
+    return true;
+  },
+
+  downloadBackup: async (): Promise<void> => {
+    const res = await fetch('/api/backup/download', { credentials: 'include' });
+    if (!res.ok) throw new Error('Erreur lors du téléchargement de la sauvegarde');
+
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `licences-backup-${new Date().toISOString().slice(0, 10)}.db`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  },
+
+  restoreBackup: async (file: File): Promise<{ success: boolean; message?: string }> => {
+    const formData = new FormData();
+    formData.append('backup', file);
+
+    const res = await fetch('/api/backup/restore', {
+      method: 'POST',
+      body: formData,
+      credentials: 'include',
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Erreur lors de la restauration de la sauvegarde');
+    }
+
+    return await res.json();
+  },
 };

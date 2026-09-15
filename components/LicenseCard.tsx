@@ -4,25 +4,38 @@ import { License, LicenseType } from '../types';
 import { Logo } from './Logo';
 import { AutoFitText } from './AutoFitText';
 
+import { SetupService, EntityConfig } from '../services/setupService';
+
 interface LicenseCardProps {
   license: License;
+  entityName?: string;
+  entityLogo?: string;
 }
 
-export const LicenseCard: React.FC<LicenseCardProps> = ({ license }) => {
+export const LicenseCard: React.FC<LicenseCardProps> = ({ license, entityName: propEntityName, entityLogo: propEntityLogo }) => {
+  const [config, setConfig] = React.useState<EntityConfig | null>(null);
+
+  React.useEffect(() => {
+    if (!propEntityName) {
+      SetupService.getStatus().then(c => setConfig(c)).catch(() => {});
+    }
+  }, [propEntityName]);
+
   const verifyUrl = `${window.location.origin}/#/verify/${license.id}`;
 
-  let headerBg = "bg-fss-green";
+  let headerBg = "bg-emerald-700";
   let textClass = "text-white";
   let headerTitleFr = "Licence Officielle";
   let headerTitleEn = "Official License";
 
-  let logoSrc = "/logo.png";
+  let logoSrc = propEntityLogo || config?.entityLogo || "/logo.png";
+  const orgName = propEntityName || config?.entityName || "Fédération Sénégalaise de Surf";
 
   if (license.type === LicenseType.LIGUE_PRO) {
     headerBg = "bg-[#E31B23]";
     headerTitleFr = "LIGUE PRO";
     headerTitleEn = "PRO LEAGUE";
-    logoSrc = "/ligue_pro_logo.png";
+    if (!propEntityLogo && !config?.entityLogo) logoSrc = "/ligue_pro_logo.png";
   } else if (license.type === LicenseType.LOISIR) {
     headerBg = "bg-[#FCD116]";
     textClass = "text-slate-900";
@@ -47,7 +60,7 @@ export const LicenseCard: React.FC<LicenseCardProps> = ({ license }) => {
           </div>
 
           <div className={`${textClass} flex-1 flex flex-col justify-center`}>
-            <h1 className="text-[9px] font-black leading-none tracking-tighter uppercase mb-0.5">Fédération Sénégalaise de Surf</h1>
+            <h1 className="text-[9px] font-black leading-none tracking-tighter uppercase mb-0.5">{orgName}</h1>
             <div className="flex items-center gap-2">
               <p className="text-[7px] font-bold tracking-[0.1em] opacity-80 uppercase leading-none">{headerTitleFr}</p>
               <div className={`h-1 w-1 ${license.type === LicenseType.LOISIR ? 'bg-slate-900/40' : 'bg-white/40'} rounded-full`}></div>

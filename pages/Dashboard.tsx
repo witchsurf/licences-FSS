@@ -8,8 +8,9 @@ import {
   ChevronLeft, ChevronRight, LayoutDashboard, Users,
   Settings, LogOut, Search as SearchIcon, Filter,
   MoreVertical, ShieldCheck, AlertCircle, Clock, RotateCw, BadgeCheck,
-  Download
+  Download, FileSpreadsheet
 } from 'lucide-react';
+import { BulkImportModal } from '../components/BulkImportModal';
 
 import {
   PieChart, Pie, Cell, ResponsiveContainer,
@@ -24,6 +25,8 @@ export const Dashboard: React.FC = () => {
   const [filterType, setFilterType] = useState('');
   const [filterClub, setFilterClub] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [filterExpiringSoon, setFilterExpiringSoon] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
   const [showStats, setShowStats] = useState(false);
@@ -126,8 +129,14 @@ export const Dashboard: React.FC = () => {
     const matchesType = !filterType || l.type === filterType;
     const matchesClub = !filterClub || l.club === filterClub;
     const matchesStatus = !filterStatus || l.status === filterStatus;
+    const matchesExpiringSoon = !filterExpiringSoon || (() => {
+      const exp = new Date(l.expirationDate).getTime();
+      const now = Date.now();
+      const diffDays = (exp - now) / (1000 * 60 * 60 * 24);
+      return diffDays >= 0 && diffDays <= 30;
+    })();
 
-    return matchesSearch && matchesCategory && matchesType && matchesClub && matchesStatus;
+    return matchesSearch && matchesCategory && matchesType && matchesClub && matchesStatus && matchesExpiringSoon;
   });
 
   // Pagination Logic
@@ -157,8 +166,29 @@ export const Dashboard: React.FC = () => {
   };
 
   const handleBatchPrint = () => {
-    if (selectedLicenses.length === 0) return;
-    window.print();
+    if (selectedIds.size === 0) return;
+    navigate(`/admin/batch-print?ids=${Array.from(selectedIds).join(',')}`);
+  };
+
+  const handleRenew = async (license: License) => {
+    const currentExpiry = new Date(license.expirationDate);
+    const newExpiry = new Date(isNaN(currentExpiry.getTime()) ? Date.now() : currentExpiry.getTime());
+    newExpiry.setFullYear(newExpiry.getFullYear() + 1);
+    const newExpiryStr = newExpiry.toISOString().slice(0, 10);
+    const newIssueStr = new Date().toISOString().slice(0, 10);
+
+    if (confirm(`Renouveler la licence de ${license.firstName} ${license.lastName} jusqu'au ${newExpiryStr} ?`)) {
+      try {
+        await LicenseService.update(license.id, {
+          expirationDate: newExpiryStr,
+          issueDate: newIssueStr,
+          status: LicenseStatus.VALID,
+        });
+        loadData();
+      } catch (err) {
+        alert('Erreur lors du renouvellement');
+      }
+    }
   };
 
   return (
@@ -187,6 +217,10 @@ export const Dashboard: React.FC = () => {
               <BadgeCheck size={20} />
               Cadres fédéraux
             </Link>
+            <Link to="/admin/settings" className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl font-medium transition-all">
+              <Settings size={20} />
+              Paramètres
+            </Link>
           </nav>
         </div>
 
@@ -204,7 +238,7 @@ export const Dashboard: React.FC = () => {
       {/* Main Content */}
       <main className="flex-1 lg:ml-72 min-w-0">
         <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-10 px-8 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-slate-900 lg:hidden">FSS Admin</h1>
+          <h1 className="text-xl font-bold text-slate-900 lg:hidden">Licences Manager</h1>
           <div className="flex-1 max-w-xl mx-8 hidden md:block">
             <div className="relative group">
               <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-fss-green transition-colors" size={18} />
@@ -217,7 +251,7 @@ export const Dashboard: React.FC = () => {
               />
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <button
               onClick={() => {
                 setSearch('');
@@ -225,6 +259,7 @@ export const Dashboard: React.FC = () => {
                 setFilterType('');
                 setFilterClub('');
                 setFilterStatus('');
+                setFilterExpiringSoon(false);
                 setCurrentPage(1);
               }}
               className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-all"
@@ -234,18 +269,26 @@ export const Dashboard: React.FC = () => {
             </button>
             <button
               onClick={() => setShowStats(!showStats)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${showStats ? 'bg-fss-green text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+              className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-bold transition-all ${showStats ? 'bg-fss-green text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
             >
               <LayoutDashboard size={18} />
-              Statistiques
+              <span className="hidden sm:inline">Stats</span>
+            </button>
+            <button
+              onClick={() => setIsImportModalOpen(true)}
+              className="flex items-center gap-2 px-3 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-sm font-bold hover:bg-emerald-100 transition-all shadow-sm"
+              title="Importer des licences en masse"
+            >
+              <FileSpreadsheet size={18} />
+              <span className="hidden sm:inline">Importer CSV</span>
             </button>
             <button
               onClick={() => exportLicensesCSV(filteredLicenses)}
-              className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all shadow-sm"
+              className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all shadow-sm"
               title="Exporter en CSV"
             >
               <Download size={18} />
-              <span className="hidden sm:inline">Export CSV</span>
+              <span className="hidden sm:inline">Export</span>
             </button>
             <Link to="/admin/create" className="btn-primary py-2 px-4 text-sm whitespace-nowrap">
               <Plus size={18} />
@@ -256,7 +299,7 @@ export const Dashboard: React.FC = () => {
 
         <div className="p-8 max-w-7xl mx-auto">
           {/* Filters Bar */}
-          <div className="flex flex-wrap gap-4 mb-8">
+          <div className="flex flex-wrap items-center gap-4 mb-8">
             <div className="flex-1 min-w-[200px]">
               <div className="relative group">
                 <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
@@ -301,6 +344,16 @@ export const Dashboard: React.FC = () => {
               <option value="">Tous les Statuts</option>
               {Object.values(LicenseStatus).map(s => <option key={s} value={s}>{s}</option>)}
             </select>
+            <button
+              onClick={() => { setFilterExpiringSoon(!filterExpiringSoon); setCurrentPage(1); }}
+              className={`px-3 py-2 rounded-xl text-xs font-bold transition-all border ${
+                filterExpiringSoon
+                  ? 'bg-amber-500 text-white border-amber-600 shadow-sm'
+                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+              }`}
+            >
+              Expirant bientôt (≤ 30j)
+            </button>
           </div>
           {selectedLicenses.length > 0 && (
             <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-fss-green/20 bg-fss-green/5 px-5 py-4">
@@ -325,9 +378,9 @@ export const Dashboard: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleBatchPrint}
-                  className="flex items-center gap-2 rounded-xl bg-fss-green px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-green-700"
+                  className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-emerald-700 transition-colors"
                 >
-                  <Printer size={17} /> Imprimer la sélection
+                  <Printer size={17} /> Imprimer Planche A4
                 </button>
               </div>
             </div>
@@ -501,6 +554,13 @@ export const Dashboard: React.FC = () => {
                       </td>
                       <td className="px-8 py-5 text-right">
                         <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => handleRenew(license)}
+                            className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
+                            title="Renouveler pour 1 an (Nouvelle saison)"
+                          >
+                            <RotateCw size={18} />
+                          </button>
                           <Link to={`/admin/edit/${license.id}`} className="p-2 text-slate-400 hover:text-fss-green hover:bg-fss-green/10 rounded-xl transition-all" title="Modifier">
                             <Edit size={18} />
                           </Link>
@@ -569,6 +629,15 @@ export const Dashboard: React.FC = () => {
         </div>
       ))}
     </div>
+
+    <BulkImportModal
+      isOpen={isImportModalOpen}
+      onClose={() => setIsImportModalOpen(false)}
+      onSuccess={() => {
+        setIsImportModalOpen(false);
+        loadData();
+      }}
+    />
     </>
   );
 };

@@ -10,6 +10,8 @@ import { FederalOfficials } from './pages/FederalOfficials';
 import { FederalOfficialForm } from './pages/FederalOfficialForm';
 import { Setup } from './pages/Setup';
 import { Locked } from './pages/Locked';
+import { Settings } from './pages/Settings';
+import { BatchPrint } from './pages/BatchPrint';
 import { SetupService } from './services/setupService';
 
 // Guard component that checks initial configuration and hardware lock
@@ -64,7 +66,7 @@ const SystemGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const isPublicView = location.pathname.startsWith('/verify/') || location.pathname.startsWith('/license/');
-  const isStandalone = location.pathname === '/login' || location.pathname === '/setup' || location.pathname === '/locked';
+  const isStandalone = location.pathname === '/login' || location.pathname === '/setup' || location.pathname === '/locked' || location.pathname === '/admin/batch-print';
 
   const showHeader = !isPublicView && !isStandalone;
 
@@ -89,6 +91,8 @@ const App: React.FC = () => {
             <Route path="/setup" element={<Setup />} />
             <Route path="/locked" element={<Locked />} />
             <Route path="/admin" element={<Dashboard />} />
+            <Route path="/admin/settings" element={<Settings />} />
+            <Route path="/admin/batch-print" element={<BatchPrint />} />
             <Route path="/admin/create" element={<LicenseForm />} />
             <Route path="/admin/edit/:id" element={<LicenseForm />} />
             <Route path="/admin/cadres-federaux" element={<FederalOfficials />} />

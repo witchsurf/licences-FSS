@@ -106,13 +106,19 @@ router.post('/initialize', (req, res) => {
  */
 router.put('/config', authenticate, (req, res) => {
   try {
-    const { entityName, entityLogo, entityAddress, entityPhone, entityEmail } = req.body;
+    const { entityName, entityAcronym, entityLogo, entityAddress, entityPhone, entityEmail, adminPassword } = req.body;
 
     if (entityName) db.setEntityConfig('entityName', entityName);
+    if (entityAcronym) db.setEntityConfig('entityAcronym', entityAcronym.toUpperCase());
     if (entityLogo) db.setEntityConfig('entityLogo', entityLogo);
     if (entityAddress !== undefined) db.setEntityConfig('entityAddress', entityAddress);
     if (entityPhone !== undefined) db.setEntityConfig('entityPhone', entityPhone);
     if (entityEmail !== undefined) db.setEntityConfig('entityEmail', entityEmail);
+    if (adminPassword && adminPassword.trim().length >= 4) {
+      db.setEntityConfig('adminPassword', adminPassword);
+      const config = require('../config');
+      config.ADMIN_PASSWORD = adminPassword;
+    }
 
     res.json({ success: true });
   } catch (err) {
