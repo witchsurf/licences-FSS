@@ -13,7 +13,19 @@ interface FederalOfficialCardProps {
   entityCountry?: string;
   entityLogo?: string;
   entityFlag?: string;
+  entityAffiliations?: string;
 }
+
+export const parseAffiliations = (affiliationsStr?: string | null): string[] => {
+  if (!affiliationsStr || !affiliationsStr.trim()) return [];
+  try {
+    if (affiliationsStr.startsWith('[') && affiliationsStr.endsWith(']')) {
+      const parsed = JSON.parse(affiliationsStr);
+      if (Array.isArray(parsed)) return parsed.map(s => String(s).trim()).filter(Boolean);
+    }
+  } catch {}
+  return affiliationsStr.split(',').map(s => s.trim()).filter(Boolean);
+};
 
 const getCountryStripColors = (country?: string | null): [string, string, string] => {
   const code = (country || 'SN').trim().toUpperCase();
@@ -38,7 +50,7 @@ const FlagStrip: React.FC<{ country?: string | null }> = ({ country }) => {
 };
 
 const OlympicRings = () => (
-  <svg viewBox="0 0 100 44" className="h-7 w-14" aria-label="CIO">
+  <svg viewBox="0 0 100 44" className="h-6 w-12 shrink-0" aria-label="CIO">
     <g fill="none" strokeWidth="4">
       <circle cx="18" cy="16" r="11" stroke="#0085c7" />
       <circle cx="50" cy="16" r="11" stroke="#000" />
@@ -49,17 +61,42 @@ const OlympicRings = () => (
   </svg>
 );
 
-const PartnerMarks = () => (
-  <div className="flex items-center gap-3">
-    <OlympicRings />
-    <span className="text-[15px] font-black tracking-tighter text-sky-600">
-      ASC<span className="font-normal text-slate-400">surf</span>
-    </span>
-    <span className="text-[13px] font-black tracking-tighter text-sky-700">
-      ISA<span className="block -mt-1 text-[4px] font-bold tracking-normal text-slate-400">INTERNATIONAL SURFING ASSOCIATION</span>
-    </span>
-  </div>
-);
+const PartnerMarks: React.FC<{ affiliations: string[] }> = ({ affiliations }) => {
+  if (!affiliations || affiliations.length === 0) return null;
+
+  return (
+    <div className="flex items-center gap-2.5">
+      {affiliations.map((item, idx) => {
+        const upper = item.trim().toUpperCase();
+        if (upper === 'CIO' || upper.includes('OLYMP')) {
+          return <OlympicRings key={idx} />;
+        }
+        if (upper === 'ASC') {
+          return (
+            <span key={idx} className="text-[14px] font-black tracking-tighter text-sky-600 leading-none shrink-0">
+              ASC<span className="font-normal text-slate-400">surf</span>
+            </span>
+          );
+        }
+        if (upper === 'ISA') {
+          return (
+            <span key={idx} className="text-[12px] font-black tracking-tighter text-sky-700 leading-none shrink-0">
+              ISA<span className="block -mt-0.5 text-[3.5px] font-bold tracking-normal text-slate-400">INTERNATIONAL SURFING ASSOC</span>
+            </span>
+          );
+        }
+        return (
+          <span
+            key={idx}
+            className="inline-flex items-center px-1.5 py-0.5 rounded border border-slate-300 bg-slate-50 text-[8.5px] font-black tracking-wider text-slate-800 uppercase leading-none shadow-2xs shrink-0"
+          >
+            {item}
+          </span>
+        );
+      })}
+    </div>
+  );
+};
 
 const titleFontSize = (title: string) => Math.max(5, Math.min(10, 180 / Math.max(title.length, 1)));
 
@@ -69,20 +106,23 @@ export const FederalOfficialCard: React.FC<FederalOfficialCardProps> = ({
   entityName: propEntityName,
   entityCountry: propEntityCountry,
   entityLogo: propEntityLogo,
-  entityFlag: propEntityFlag
+  entityFlag: propEntityFlag,
+  entityAffiliations: propEntityAffiliations
 }) => {
   const [config, setConfig] = useState<EntityConfig | null>(null);
 
   useEffect(() => {
-    if (!propEntityName || !propEntityCountry) {
+    if (!propEntityName || !propEntityCountry || propEntityAffiliations === undefined) {
       SetupService.getStatus().then(c => setConfig(c)).catch(() => {});
     }
-  }, [propEntityName, propEntityCountry]);
+  }, [propEntityName, propEntityCountry, propEntityAffiliations]);
 
   const orgName = propEntityName || config?.entityName || "Fédération Sénégalaise de Surf";
   const orgCountry = propEntityCountry || config?.entityCountry || "SN";
   const orgFlag = propEntityFlag || config?.entityFlag || null;
   const orgLogo = propEntityLogo || config?.entityLogo || "/logo.png";
+  const rawAffiliations = propEntityAffiliations !== undefined ? propEntityAffiliations : (config?.entityAffiliations ?? "");
+  const affiliationsList = parseAffiliations(rawAffiliations);
 
   if (side === 'back') {
     return (
@@ -147,9 +187,11 @@ export const FederalOfficialCard: React.FC<FederalOfficialCardProps> = ({
           </div>
         </div>
       </div>
-      <div className="absolute bottom-[11mm] left-[8mm] z-20">
-        <PartnerMarks />
-      </div>
+      {affiliationsList.length > 0 && (
+        <div className="absolute bottom-[11mm] left-[8mm] z-20">
+          <PartnerMarks affiliations={affiliationsList} />
+        </div>
+      )}
       <div className="absolute bottom-0 left-0 right-0 h-10 bg-emerald-700 pt-2 text-center text-[12px] font-black uppercase tracking-[0.1em] text-white">
         {orgName}
       </div>

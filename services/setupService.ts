@@ -8,6 +8,7 @@ export interface EntityConfig {
   entityAddress?: string | null;
   entityPhone?: string | null;
   entityEmail?: string | null;
+  entityAffiliations?: string | null;
 }
 
 export interface SetupPayload {
@@ -20,6 +21,7 @@ export interface SetupPayload {
   entityPhone?: string;
   entityEmail?: string;
   adminPassword?: string;
+  entityAffiliations?: string;
 }
 
 export const SetupService = {

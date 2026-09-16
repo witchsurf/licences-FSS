@@ -68,6 +68,7 @@ server.listen(4567, async () => {
       entityName: 'Surf Club Dakar',
       entityAcronym: 'SCD',
       entityCountry: 'SN',
+      entityAffiliations: 'ISA, CIO',
       adminPassword: 'Password123!',
       entityEmail: 'contact@dakar.sn'
     });
@@ -85,7 +86,8 @@ server.listen(4567, async () => {
     assert.strictEqual(s2.json.isSetup, true);
     assert.strictEqual(s2.json.entityName, 'Surf Club Dakar');
     assert.strictEqual(s2.json.entityCountry, 'SN');
-    console.log('  ✅ GET /api/setup/status: Returns configured organization info (country: SN)');
+    assert.strictEqual(s2.json.entityAffiliations, 'ISA, CIO');
+    console.log('  ✅ GET /api/setup/status: Returns configured organization info (country: SN, affiliations: ISA, CIO)');
 
     // 4. Test Login with configured password
     const loginRes = await request({

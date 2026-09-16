@@ -15,7 +15,9 @@ import {
   Mail,
   MapPin,
   Tag,
-  Globe
+  Globe,
+  Award,
+  Check
 } from 'lucide-react';
 import { COUNTRIES } from '../config/countries';
 
@@ -37,6 +39,29 @@ export const Setup: React.FC = () => {
   const [entityEmail, setEntityEmail] = useState('');
   const [entityPhone, setEntityPhone] = useState('');
   const [entityAddress, setEntityAddress] = useState('');
+  const [entityAffiliations, setEntityAffiliations] = useState('');
+
+  const toggleAffiliationPreset = (preset: string) => {
+    const current = entityAffiliations
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+    const index = current.findIndex(item => item.toUpperCase() === preset.toUpperCase());
+    let next: string[];
+    if (index >= 0) {
+      next = current.filter((_, i) => i !== index);
+    } else {
+      next = [...current, preset];
+    }
+    setEntityAffiliations(next.join(', '));
+  };
+
+  const isPresetSelected = (preset: string) => {
+    return entityAffiliations
+      .split(',')
+      .map(s => s.trim().toUpperCase())
+      .includes(preset.toUpperCase());
+  };
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -83,6 +108,7 @@ export const Setup: React.FC = () => {
         entityAddress,
         entityPhone,
         entityEmail,
+        entityAffiliations: entityAffiliations.trim(),
         adminPassword,
       });
 
@@ -231,6 +257,50 @@ export const Setup: React.FC = () => {
                 <p className="text-xs text-slate-400 mt-1.5">
                   Le drapeau de ce pays apparaîtra dans le coin supérieur gauche des cartes officielles de cadres.
                 </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                  <Award size={14} className="text-emerald-400" />
+                  Affiliations aux instances internationales & partenaires
+                </label>
+                <p className="text-xs text-slate-400 mb-2.5">
+                  Sélectionnez ou saisissez les instances internationales ou continentales (ex: CIO, ISA, ASC). Laissez vide si vous n'avez pas d'affiliation.
+                </p>
+                
+                {/* Presets Chips */}
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                  {[
+                    { key: 'CIO', label: '🏅 CIO (Olympique)' },
+                    { key: 'ISA', label: '🏄 ISA (Surfing)' },
+                    { key: 'ASC', label: '🌍 ASC (Afrique)' }
+                  ].map(({ key, label }) => {
+                    const selected = isPresetSelected(key);
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => toggleAffiliationPreset(key)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 border ${
+                          selected
+                            ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300 shadow-sm'
+                            : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white hover:border-slate-600'
+                        }`}
+                      >
+                        {selected && <Check size={12} className="text-emerald-400" />}
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <input
+                  type="text"
+                  placeholder="Ex : ISA, CIO, ASC ou personnalisez (séparés par des virgules)..."
+                  value={entityAffiliations}
+                  onChange={(e) => setEntityAffiliations(e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-sm"
+                />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">

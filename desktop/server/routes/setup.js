@@ -32,6 +32,7 @@ router.get('/status', (req, res) => {
       entityCountry: config.entityCountry || 'SN',
       entityFlag: config.entityFlag || null,
       entityLogo: config.entityLogo || null,
+      entityAffiliations: config.entityAffiliations || '',
     });
   } catch (err) {
     console.error('Error checking setup status:', err);
@@ -93,7 +94,7 @@ router.post('/initialize', (req, res) => {
       return res.status(400).json({ error: 'L\'entité a déjà été configurée' });
     }
 
-    const { entityName, entityAcronym, entityCountry, entityFlag, entityLogo, entityAddress, entityPhone, entityEmail, adminPassword } = req.body;
+    const { entityName, entityAcronym, entityCountry, entityFlag, entityLogo, entityAddress, entityPhone, entityEmail, entityAffiliations, adminPassword } = req.body;
 
     if (!entityName || !adminPassword) {
       return res.status(400).json({ error: 'Le nom de l\'entité et le mot de passe admin sont requis' });
@@ -108,6 +109,7 @@ router.post('/initialize', (req, res) => {
     if (entityAddress) db.setEntityConfig('entityAddress', entityAddress);
     if (entityPhone) db.setEntityConfig('entityPhone', entityPhone);
     if (entityEmail) db.setEntityConfig('entityEmail', entityEmail);
+    if (entityAffiliations !== undefined) db.setEntityConfig('entityAffiliations', entityAffiliations);
     db.setEntityConfig('adminPassword', adminPassword);
     db.setEntityConfig('setupCompletedAt', new Date().toISOString());
 
@@ -127,7 +129,7 @@ router.post('/initialize', (req, res) => {
  */
 router.put('/config', authenticate, (req, res) => {
   try {
-    const { entityName, entityAcronym, entityCountry, entityFlag, entityLogo, entityAddress, entityPhone, entityEmail, adminPassword } = req.body;
+    const { entityName, entityAcronym, entityCountry, entityFlag, entityLogo, entityAddress, entityPhone, entityEmail, entityAffiliations, adminPassword } = req.body;
 
     if (entityName) db.setEntityConfig('entityName', entityName);
     if (entityAcronym) db.setEntityConfig('entityAcronym', entityAcronym.toUpperCase());
@@ -137,6 +139,7 @@ router.put('/config', authenticate, (req, res) => {
     if (entityAddress !== undefined) db.setEntityConfig('entityAddress', entityAddress);
     if (entityPhone !== undefined) db.setEntityConfig('entityPhone', entityPhone);
     if (entityEmail !== undefined) db.setEntityConfig('entityEmail', entityEmail);
+    if (entityAffiliations !== undefined) db.setEntityConfig('entityAffiliations', entityAffiliations);
     if (adminPassword && adminPassword.trim().length >= 4) {
       db.setEntityConfig('adminPassword', adminPassword);
       const config = require('../config');

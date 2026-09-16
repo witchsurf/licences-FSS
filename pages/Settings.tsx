@@ -20,7 +20,9 @@ import {
   ShieldCheck,
   Globe,
   Flag,
-  RotateCcw
+  RotateCcw,
+  Award,
+  Check
 } from 'lucide-react';
 
 export const Settings: React.FC = () => {
@@ -40,6 +42,29 @@ export const Settings: React.FC = () => {
   const [entityAddress, setEntityAddress] = useState('');
   const [entityPhone, setEntityPhone] = useState('');
   const [entityEmail, setEntityEmail] = useState('');
+  const [entityAffiliations, setEntityAffiliations] = useState('');
+
+  const toggleAffiliationPreset = (preset: string) => {
+    const current = entityAffiliations
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+    const index = current.findIndex(item => item.toUpperCase() === preset.toUpperCase());
+    let next: string[];
+    if (index >= 0) {
+      next = current.filter((_, i) => i !== index);
+    } else {
+      next = [...current, preset];
+    }
+    setEntityAffiliations(next.join(', '));
+  };
+
+  const isPresetSelected = (preset: string) => {
+    return entityAffiliations
+      .split(',')
+      .map(s => s.trim().toUpperCase())
+      .includes(preset.toUpperCase());
+  };
 
   // Password state
   const [newPassword, setNewPassword] = useState('');
@@ -76,6 +101,7 @@ export const Settings: React.FC = () => {
       if (config.entityAddress) setEntityAddress(config.entityAddress);
       if (config.entityPhone) setEntityPhone(config.entityPhone);
       if (config.entityEmail) setEntityEmail(config.entityEmail);
+      if (config.entityAffiliations !== undefined) setEntityAffiliations(config.entityAffiliations || '');
     } catch (err) {
       console.error('Failed to load settings:', err);
     } finally {
@@ -147,6 +173,7 @@ export const Settings: React.FC = () => {
         entityAddress,
         entityPhone,
         entityEmail,
+        entityAffiliations: entityAffiliations.trim(),
       });
       setMessage({ type: 'success', text: 'Paramètres enregistrés avec succès !' });
     } catch (err: any) {
@@ -458,6 +485,50 @@ export const Settings: React.FC = () => {
                 className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm"
               />
             </div>
+          </div>
+
+          <div className="pt-4 border-t border-slate-100">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+              <Award size={14} className="text-emerald-600" />
+              Affiliations aux instances internationales & partenaires
+            </label>
+            <p className="text-xs text-slate-500 mb-3">
+              Sélectionnez ou renseignez les instances internationales (ex: CIO, ISA, ASC) figurant sur les cartes officielles de cadres. Laissez ce champ vide si vous n'avez pas d'affiliation.
+            </p>
+
+            {/* Presets Chips */}
+            <div className="flex flex-wrap items-center gap-2 mb-2.5">
+              {[
+                { key: 'CIO', label: '🏅 CIO (Anneaux Olympiques)' },
+                { key: 'ISA', label: '🏄 ISA (International Surfing)' },
+                { key: 'ASC', label: '🌍 ASC (African Surfing)' }
+              ].map(({ key, label }) => {
+                const selected = isPresetSelected(key);
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => toggleAffiliationPreset(key)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border ${
+                      selected
+                        ? 'bg-emerald-50 border-emerald-500 text-emerald-800 shadow-sm'
+                        : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                    }`}
+                  >
+                    {selected && <Check size={12} className="text-emerald-600" />}
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+
+            <input
+              type="text"
+              placeholder="Ex : CIO, ISA, ASC ou personnalisez avec vos propres instances (séparées par des virgules)..."
+              value={entityAffiliations}
+              onChange={(e) => setEntityAffiliations(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm"
+            />
           </div>
 
           <div className="pt-4 border-t border-slate-100 flex justify-end">

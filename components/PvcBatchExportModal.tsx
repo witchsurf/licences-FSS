@@ -27,6 +27,7 @@ interface PvcBatchExportModalProps {
   entityCountry?: string;
   entityLogo?: string;
   entityFlag?: string;
+  entityAffiliations?: string;
 }
 
 export const PvcBatchExportModal: React.FC<PvcBatchExportModalProps> = ({
@@ -38,6 +39,7 @@ export const PvcBatchExportModal: React.FC<PvcBatchExportModalProps> = ({
   entityCountry,
   entityLogo,
   entityFlag,
+  entityAffiliations,
 }) => {
   const [exportFormat, setExportFormat] = useState<'pdf' | 'zip'>('pdf');
   const [includeBleed, setIncludeBleed] = useState(true);
@@ -390,6 +392,7 @@ export const PvcBatchExportModal: React.FC<PvcBatchExportModalProps> = ({
                   entityCountry={entityCountry}
                   entityLogo={entityLogo}
                   entityFlag={entityFlag}
+                  entityAffiliations={entityAffiliations}
                 />
               </div>
 
@@ -414,6 +417,7 @@ export const PvcBatchExportModal: React.FC<PvcBatchExportModalProps> = ({
                     entityCountry={entityCountry}
                     entityLogo={entityLogo}
                     entityFlag={entityFlag}
+                    entityAffiliations={entityAffiliations}
                   />
                 </div>
               )}
