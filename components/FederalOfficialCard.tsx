@@ -4,7 +4,7 @@ import { Logo } from './Logo';
 import { CountryFlagCorner } from './CountryFlagCorner';
 import { FSS_ORGANIGRAMME_URL } from '../config/federation';
 import { FederalOfficial } from '../types';
-import { SetupService, EntityConfig } from '../services/setupService';
+import { SetupService, EntityConfig, InstitutionAffiliation } from '../services/setupService';
 
 interface FederalOfficialCardProps {
   official: FederalOfficial;
@@ -16,15 +16,32 @@ interface FederalOfficialCardProps {
   entityAffiliations?: string;
 }
 
-export const parseAffiliations = (affiliationsStr?: string | null): string[] => {
+export const parseAffiliations = (affiliationsStr?: string | null): InstitutionAffiliation[] => {
   if (!affiliationsStr || !affiliationsStr.trim()) return [];
   try {
     if (affiliationsStr.startsWith('[') && affiliationsStr.endsWith(']')) {
       const parsed = JSON.parse(affiliationsStr);
-      if (Array.isArray(parsed)) return parsed.map(s => String(s).trim()).filter(Boolean);
+      if (Array.isArray(parsed)) {
+        return parsed.map((item, index) => {
+          if (typeof item === 'string') {
+            return { id: item.toLowerCase().replace(/\s+/g, '-'), name: item.trim() };
+          }
+          if (item && typeof item === 'object') {
+            return {
+              id: item.id || `inst-${index}`,
+              name: item.name || '',
+              logoUrl: item.logoUrl || undefined,
+            };
+          }
+          return null;
+        }).filter(Boolean) as InstitutionAffiliation[];
+      }
     }
   } catch {}
-  return affiliationsStr.split(',').map(s => s.trim()).filter(Boolean);
+  return affiliationsStr.split(',').map((s, idx) => {
+    const name = s.trim();
+    return { id: name.toLowerCase().replace(/\s+/g, '-'), name };
+  }).filter(item => Boolean(item.name));
 };
 
 const getCountryStripColors = (country?: string | null): [string, string, string] => {
@@ -61,36 +78,48 @@ const OlympicRings = () => (
   </svg>
 );
 
-const PartnerMarks: React.FC<{ affiliations: string[] }> = ({ affiliations }) => {
+const PartnerMarks: React.FC<{ affiliations: InstitutionAffiliation[] }> = ({ affiliations }) => {
   if (!affiliations || affiliations.length === 0) return null;
 
   return (
-    <div className="flex items-center gap-2.5">
+    <div className="flex items-center gap-3">
       {affiliations.map((item, idx) => {
-        const upper = item.trim().toUpperCase();
+        // If a custom logo image was uploaded, display the real logo image
+        if (item.logoUrl) {
+          return (
+            <img
+              key={item.id || idx}
+              src={item.logoUrl}
+              alt={item.name}
+              className="h-6 max-h-[7mm] max-w-[28mm] object-contain shrink-0 drop-shadow-2xs"
+            />
+          );
+        }
+
+        const upper = item.name.trim().toUpperCase();
         if (upper === 'CIO' || upper.includes('OLYMP')) {
-          return <OlympicRings key={idx} />;
+          return <OlympicRings key={item.id || idx} />;
         }
         if (upper === 'ASC') {
           return (
-            <span key={idx} className="text-[14px] font-black tracking-tighter text-sky-600 leading-none shrink-0">
+            <span key={item.id || idx} className="text-[14px] font-black tracking-tighter text-sky-600 leading-none shrink-0">
               ASC<span className="font-normal text-slate-400">surf</span>
             </span>
           );
         }
         if (upper === 'ISA') {
           return (
-            <span key={idx} className="text-[12px] font-black tracking-tighter text-sky-700 leading-none shrink-0">
+            <span key={item.id || idx} className="text-[12px] font-black tracking-tighter text-sky-700 leading-none shrink-0">
               ISA<span className="block -mt-0.5 text-[3.5px] font-bold tracking-normal text-slate-400">INTERNATIONAL SURFING ASSOC</span>
             </span>
           );
         }
         return (
           <span
-            key={idx}
+            key={item.id || idx}
             className="inline-flex items-center px-1.5 py-0.5 rounded border border-slate-300 bg-slate-50 text-[8.5px] font-black tracking-wider text-slate-800 uppercase leading-none shadow-2xs shrink-0"
           >
-            {item}
+            {item.name}
           </span>
         );
       })}

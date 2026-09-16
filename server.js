@@ -32,6 +32,15 @@ app.use('/api/federal-officials', federalOfficialRoutes);
 app.get('/api/setup/status', (req, res) => {
   res.json({ isSetup: true, entityName: 'Fédération Sénégalaise de Surf', entityCountry: 'SN', entityAffiliations: '' });
 });
+app.get('/api/setup/config', (req, res) => {
+  res.json({ entityName: 'Fédération Sénégalaise de Surf', entityCountry: 'SN', entityAffiliations: '' });
+});
+app.put('/api/setup/config', (req, res) => {
+  res.json({ success: true });
+});
+app.post(['/api/setup/logo', '/api/setup/flag', '/api/setup/institution-logo'], (req, res) => {
+  res.json({ url: '/logo.png' });
+});
 app.get('/api/activation/status', (req, res) => {
   res.json({ activated: true, valid: true });
 });

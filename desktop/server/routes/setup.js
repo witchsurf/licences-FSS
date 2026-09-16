@@ -84,6 +84,21 @@ router.post('/flag', upload.single('flag'), (req, res) => {
 });
 
 /**
+ * Upload partner institution logo.
+ */
+router.post('/institution-logo', upload.single('logo'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'Aucun fichier fourni' });
+
+  try {
+    const url = savePhoto(req.file.buffer, req.file.originalname);
+    res.json({ url });
+  } catch (err) {
+    console.error('Error uploading institution logo:', err);
+    res.status(500).json({ error: "Erreur lors de l'upload du logo d'institution" });
+  }
+});
+
+/**
  * Initial setup — configure entity.
  * This can only be called once (when no entity is configured yet).
  */

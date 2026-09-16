@@ -17,9 +17,13 @@ import {
   Tag,
   Globe,
   Award,
-  Check
+  Check,
+  Trash2,
+  Plus,
+  Image as ImageIcon
 } from 'lucide-react';
 import { COUNTRIES } from '../config/countries';
+import { InstitutionAffiliation } from '../services/setupService';
 
 export const Setup: React.FC = () => {
   const navigate = useNavigate();
@@ -39,28 +43,49 @@ export const Setup: React.FC = () => {
   const [entityEmail, setEntityEmail] = useState('');
   const [entityPhone, setEntityPhone] = useState('');
   const [entityAddress, setEntityAddress] = useState('');
-  const [entityAffiliations, setEntityAffiliations] = useState('');
+  const [institutions, setInstitutions] = useState<InstitutionAffiliation[]>([]);
+  const [newInstName, setNewInstName] = useState('');
 
-  const toggleAffiliationPreset = (preset: string) => {
-    const current = entityAffiliations
-      .split(',')
-      .map(s => s.trim())
-      .filter(Boolean);
-    const index = current.findIndex(item => item.toUpperCase() === preset.toUpperCase());
-    let next: string[];
-    if (index >= 0) {
-      next = current.filter((_, i) => i !== index);
+  const togglePreset = (name: string) => {
+    const exists = institutions.some(i => i.name.toUpperCase() === name.toUpperCase());
+    if (exists) {
+      setInstitutions(institutions.filter(i => i.name.toUpperCase() !== name.toUpperCase()));
     } else {
-      next = [...current, preset];
+      setInstitutions([...institutions, { id: name.toLowerCase().replace(/\s+/g, '-'), name }]);
     }
-    setEntityAffiliations(next.join(', '));
   };
 
-  const isPresetSelected = (preset: string) => {
-    return entityAffiliations
-      .split(',')
-      .map(s => s.trim().toUpperCase())
-      .includes(preset.toUpperCase());
+  const isPresetSelected = (name: string) => {
+    return institutions.some(i => i.name.toUpperCase() === name.toUpperCase());
+  };
+
+  const handleAddCustomInstitution = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const trimmed = newInstName.trim();
+    if (!trimmed) return;
+    if (institutions.some(i => i.name.toUpperCase() === trimmed.toUpperCase())) {
+      setNewInstName('');
+      return;
+    }
+    setInstitutions([...institutions, { id: 'inst-' + Date.now(), name: trimmed }]);
+    setNewInstName('');
+  };
+
+  const handleUploadInstitutionLogo = async (id: string, file: File) => {
+    try {
+      const url = await SetupService.uploadInstitutionLogo(file);
+      setInstitutions(prev => prev.map(inst => inst.id === id ? { ...inst, logoUrl: url } : inst));
+    } catch (err: any) {
+      setError(err.message || "Erreur lors de l'upload du logo");
+    }
+  };
+
+  const handleRemoveInstitutionLogo = (id: string) => {
+    setInstitutions(prev => prev.map(inst => inst.id === id ? { ...inst, logoUrl: undefined } : inst));
+  };
+
+  const handleRemoveInstitution = (id: string) => {
+    setInstitutions(prev => prev.filter(inst => inst.id !== id));
   };
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -108,7 +133,7 @@ export const Setup: React.FC = () => {
         entityAddress,
         entityPhone,
         entityEmail,
-        entityAffiliations: entityAffiliations.trim(),
+        entityAffiliations: JSON.stringify(institutions),
         adminPassword,
       });
 
@@ -259,28 +284,31 @@ export const Setup: React.FC = () => {
                 </p>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                  <Award size={14} className="text-emerald-400" />
-                  Affiliations aux instances internationales & partenaires
-                </label>
-                <p className="text-xs text-slate-400 mb-2.5">
-                  Sélectionnez ou saisissez les instances internationales ou continentales (ex: CIO, ISA, ASC). Laissez vide si vous n'avez pas d'affiliation.
-                </p>
-                
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                    <Award size={14} className="text-emerald-400" />
+                    Affiliations aux institutions internationales & logos
+                  </label>
+                  <p className="text-xs text-slate-400">
+                    Ajoutez vos institutions partenaires (ex: CIO, ISA, ASC) et téléversez leurs logos officiels pour les cartes de cadres.
+                  </p>
+                </div>
+
                 {/* Presets Chips */}
-                <div className="flex flex-wrap items-center gap-2 mb-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-bold text-slate-500 mr-1">Raccourcis :</span>
                   {[
-                    { key: 'CIO', label: '🏅 CIO (Olympique)' },
-                    { key: 'ISA', label: '🏄 ISA (Surfing)' },
-                    { key: 'ASC', label: '🌍 ASC (Afrique)' }
-                  ].map(({ key, label }) => {
-                    const selected = isPresetSelected(key);
+                    { name: 'CIO', label: '🏅 CIO (Olympique)' },
+                    { name: 'ISA', label: '🏄 ISA (Surfing)' },
+                    { name: 'ASC', label: '🌍 ASC (Afrique)' }
+                  ].map(({ name, label }) => {
+                    const selected = isPresetSelected(name);
                     return (
                       <button
-                        key={key}
+                        key={name}
                         type="button"
-                        onClick={() => toggleAffiliationPreset(key)}
+                        onClick={() => togglePreset(name)}
                         className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 border ${
                           selected
                             ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300 shadow-sm'
@@ -294,13 +322,76 @@ export const Setup: React.FC = () => {
                   })}
                 </div>
 
-                <input
-                  type="text"
-                  placeholder="Ex : ISA, CIO, ASC ou personnalisez (séparés par des virgules)..."
-                  value={entityAffiliations}
-                  onChange={(e) => setEntityAffiliations(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-sm"
-                />
+                {/* Custom institution inline add */}
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    placeholder="Autre institution (ex: WSL, World Skate, FCS)..."
+                    value={newInstName}
+                    onChange={(e) => setNewInstName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddCustomInstitution();
+                      }
+                    }}
+                    className="flex-1 px-3.5 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 text-xs"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleAddCustomInstitution()}
+                    className="inline-flex items-center gap-1 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition-all shrink-0"
+                  >
+                    <Plus size={14} /> Ajouter
+                  </button>
+                </div>
+
+                {/* Active Institutions Grid */}
+                {institutions.length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                    {institutions.map((inst) => (
+                      <div key={inst.id} className="p-3 bg-slate-900/90 border border-slate-800 rounded-xl flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="h-10 w-16 bg-white rounded-lg p-1 flex items-center justify-center shrink-0 overflow-hidden">
+                            {inst.logoUrl ? (
+                              <img src={inst.logoUrl} alt={inst.name} className="h-full w-full object-contain" />
+                            ) : (
+                              <div className="flex flex-col items-center justify-center text-slate-400">
+                                <ImageIcon size={14} />
+                                <span className="text-[7px] font-bold uppercase">Sans logo</span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <span className="text-xs font-bold text-white block truncate uppercase">{inst.name}</span>
+                            <label className="cursor-pointer text-[10px] text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1 mt-0.5">
+                              <Upload size={10} />
+                              {inst.logoUrl ? 'Changer logo' : 'Ajouter logo'}
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const f = e.target.files?.[0];
+                                  if (f) handleUploadInstitutionLogo(inst.id, f);
+                                }}
+                              />
+                            </label>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveInstitution(inst.id)}
+                          className="p-1 text-slate-500 hover:text-red-400 transition-colors"
+                          title="Supprimer"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">

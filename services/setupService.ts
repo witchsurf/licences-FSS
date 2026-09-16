@@ -1,3 +1,9 @@
+export interface InstitutionAffiliation {
+  id: string;
+  name: string;
+  logoUrl?: string;
+}
+
 export interface EntityConfig {
   isSetup: boolean;
   entityName: string | null;
@@ -23,6 +29,15 @@ export interface SetupPayload {
   adminPassword?: string;
   entityAffiliations?: string;
 }
+
+const fileToDataUrl = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};
 
 export const SetupService = {
   getStatus: async (): Promise<EntityConfig> => {
@@ -50,37 +65,67 @@ export const SetupService = {
   },
 
   uploadLogo: async (file: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append('logo', file);
+    try {
+      const formData = new FormData();
+      formData.append('logo', file);
 
-    const res = await fetch('/api/setup/logo', {
-      method: 'POST',
-      body: formData,
-    });
+      const res = await fetch('/api/setup/logo', {
+        method: 'POST',
+        body: formData,
+      });
 
-    if (!res.ok) {
-      throw new Error('Erreur lors du téléchargement du logo');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.url) return data.url;
+      }
+    } catch (e) {
+      console.warn('API upload logo failed, using client storage fallback:', e);
     }
 
-    const data = await res.json();
-    return data.url;
+    // Client-side fallback to base64 Data URL (ensures zero errors on Vercel / offline)
+    return await fileToDataUrl(file);
   },
 
   uploadFlag: async (file: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append('flag', file);
+    try {
+      const formData = new FormData();
+      formData.append('flag', file);
 
-    const res = await fetch('/api/setup/flag', {
-      method: 'POST',
-      body: formData,
-    });
+      const res = await fetch('/api/setup/flag', {
+        method: 'POST',
+        body: formData,
+      });
 
-    if (!res.ok) {
-      throw new Error('Erreur lors du téléchargement du drapeau');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.url) return data.url;
+      }
+    } catch (e) {
+      console.warn('API upload flag failed, using client storage fallback:', e);
     }
 
-    const data = await res.json();
-    return data.url;
+    return await fileToDataUrl(file);
+  },
+
+  uploadInstitutionLogo: async (file: File): Promise<string> => {
+    try {
+      const formData = new FormData();
+      formData.append('logo', file);
+
+      const res = await fetch('/api/setup/institution-logo', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.url) return data.url;
+      }
+    } catch (e) {
+      console.warn('API upload institution logo failed, using client storage fallback:', e);
+    }
+
+    return await fileToDataUrl(file);
   },
 
   initialize: async (payload: SetupPayload): Promise<{ success: boolean }> => {
