@@ -64,3 +64,13 @@ BEGIN
   RETURN 'FSS-' || year_text || '-' || lpad(next_val::text, 6, '0');
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Organization Entity Configuration
+CREATE TABLE IF NOT EXISTS entity_config (
+  key text PRIMARY KEY,
+  value text NOT NULL
+);
+ALTER TABLE entity_config ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read access on entity_config" ON entity_config FOR SELECT USING (true);
+CREATE POLICY "Allow full access on entity_config" ON entity_config FOR ALL USING (true);
+

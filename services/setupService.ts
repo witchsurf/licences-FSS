@@ -30,6 +30,8 @@ export interface SetupPayload {
   entityAffiliations?: string;
 }
 
+const LOCAL_CONFIG_KEY = 'fss_entity_config';
+
 const fileToDataUrl = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -39,17 +41,69 @@ const fileToDataUrl = (file: File): Promise<string> => {
   });
 };
 
+const getStoredConfig = (): Partial<EntityConfig> => {
+  try {
+    const raw = localStorage.getItem(LOCAL_CONFIG_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+};
+
+const saveStoredConfig = (updates: Partial<EntityConfig>): void => {
+  try {
+    const current = getStoredConfig();
+    const merged = { ...current, ...updates };
+    localStorage.setItem(LOCAL_CONFIG_KEY, JSON.stringify(merged));
+  } catch {}
+};
+
+const notifyConfigChanged = (config?: Partial<EntityConfig>): void => {
+  try {
+    window.dispatchEvent(new CustomEvent('fss_entity_config_changed', { detail: config }));
+  } catch {}
+};
+
 export const SetupService = {
   getStatus: async (): Promise<EntityConfig> => {
+    const local = getStoredConfig();
+    let serverConfig: Partial<EntityConfig> = {};
+
     try {
       const res = await fetch('/api/setup/status');
-      if (!res.ok) {
-        return { isSetup: true, entityName: 'Licences Manager' };
+      if (res.ok) {
+        serverConfig = await res.json();
       }
-      return await res.json();
-    } catch {
-      return { isSetup: true, entityName: 'Licences Manager' };
+    } catch (e) {
+      console.warn('API getStatus network error, using local storage cache:', e);
     }
+
+    // Merge logic: user saved config (local) takes precedence for custom identity values
+    const entityName = local.entityName || serverConfig.entityName || 'Licences Manager';
+    const entityAcronym = local.entityAcronym || serverConfig.entityAcronym || 'FSS';
+    const entityCountry = local.entityCountry || serverConfig.entityCountry || 'SN';
+    const entityFlag = local.entityFlag !== undefined ? local.entityFlag : (serverConfig.entityFlag ?? null);
+    const entityLogo = local.entityLogo !== undefined ? local.entityLogo : (serverConfig.entityLogo ?? null);
+    const entityAddress = local.entityAddress !== undefined ? local.entityAddress : (serverConfig.entityAddress ?? null);
+    const entityPhone = local.entityPhone !== undefined ? local.entityPhone : (serverConfig.entityPhone ?? null);
+    const entityEmail = local.entityEmail !== undefined ? local.entityEmail : (serverConfig.entityEmail ?? null);
+    const entityAffiliations = local.entityAffiliations !== undefined ? local.entityAffiliations : (serverConfig.entityAffiliations ?? '');
+
+    const merged: EntityConfig = {
+      isSetup: serverConfig.isSetup ?? local.isSetup ?? true,
+      entityName,
+      entityAcronym,
+      entityCountry,
+      entityFlag,
+      entityLogo,
+      entityAddress,
+      entityPhone,
+      entityEmail,
+      entityAffiliations,
+    };
+
+    saveStoredConfig(merged);
+    return merged;
   },
 
   getActivationStatus: async (): Promise<{ activated: boolean; valid: boolean; reason?: string }> => {
@@ -76,13 +130,16 @@ export const SetupService = {
 
       if (res.ok) {
         const data = await res.json();
-        if (data.url) return data.url;
+        // Disallow hardcoded mock logo response
+        if (data.url && data.url !== '/logo.png') {
+          return data.url;
+        }
       }
     } catch (e) {
       console.warn('API upload logo failed, using client storage fallback:', e);
     }
 
-    // Client-side fallback to base64 Data URL (ensures zero errors on Vercel / offline)
+    // Client-side fallback to base64 Data URL (ensures uploaded image is NEVER lost)
     return await fileToDataUrl(file);
   },
 
@@ -98,7 +155,9 @@ export const SetupService = {
 
       if (res.ok) {
         const data = await res.json();
-        if (data.url) return data.url;
+        if (data.url && data.url !== '/logo.png') {
+          return data.url;
+        }
       }
     } catch (e) {
       console.warn('API upload flag failed, using client storage fallback:', e);
@@ -119,25 +178,37 @@ export const SetupService = {
 
       if (res.ok) {
         const data = await res.json();
-        if (data.url) return data.url;
+        // Crucial: Reject any dummy '/logo.png' returned from mock servers
+        if (data.url && data.url !== '/logo.png') {
+          return data.url;
+        }
       }
     } catch (e) {
       console.warn('API upload institution logo failed, using client storage fallback:', e);
     }
 
+    // Always convert to data URL so the user's custom uploaded institution logo (e.g. CNOSS) is displayed!
     return await fileToDataUrl(file);
   },
 
   initialize: async (payload: SetupPayload): Promise<{ success: boolean }> => {
-    const res = await fetch('/api/setup/initialize', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
+    // Save to local storage cache immediately
+    saveStoredConfig({ ...payload, isSetup: true });
+    notifyConfigChanged({ ...payload, isSetup: true });
 
-    if (!res.ok) {
-      const data = await res.json();
-      throw new Error(data.error || 'Erreur lors de la configuration');
+    let serverRes = { success: true };
+    try {
+      const res = await fetch('/api/setup/initialize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        serverRes = await res.json().catch(() => ({ success: true }));
+      }
+    } catch (e) {
+      console.warn('Server initialize warning:', e);
     }
 
     // Auto-activate license upon first setup
@@ -147,30 +218,54 @@ export const SetupService = {
       console.warn('Activation call error:', e);
     }
 
-    return await res.json();
+    return serverRes;
   },
 
   getFullConfig: async (): Promise<Record<string, string>> => {
+    const local = getStoredConfig();
+    let serverConfig: Record<string, string> = {};
+
     try {
       const res = await fetch('/api/setup/config', { credentials: 'include' });
-      if (!res.ok) return {};
-      return await res.json();
-    } catch {
-      return {};
+      if (res.ok) {
+        serverConfig = await res.json();
+      }
+    } catch (e) {
+      console.warn('Failed to fetch full config from server:', e);
     }
+
+    const merged: Record<string, string> = { ...serverConfig };
+    // Overlay local values
+    for (const [k, v] of Object.entries(local)) {
+      if (v !== undefined && v !== null) {
+        merged[k] = String(v);
+      }
+    }
+
+    return merged;
   },
 
   updateConfig: async (payload: Partial<SetupPayload>): Promise<boolean> => {
-    const res = await fetch('/api/setup/config', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      credentials: 'include',
-    });
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || 'Erreur lors de la mise à jour des paramètres');
+    // 1. Immediately store in localStorage for instant persistent feedback
+    saveStoredConfig(payload);
+    notifyConfigChanged(payload);
+
+    // 2. Persist to server
+    try {
+      const res = await fetch('/api/setup/config', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        console.warn('Server config update response error:', err);
+      }
+    } catch (err) {
+      console.warn('Server network error updating config, saved locally in browser:', err);
     }
+
     return true;
   },
 

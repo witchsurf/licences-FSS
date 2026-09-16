@@ -31,10 +31,23 @@ export const LicenseCardVerso: React.FC<LicenseCardVersoProps> = ({
   const [config, setConfig] = useState<EntityConfig | null>(null);
 
   useEffect(() => {
-    if (!propEntityName || !propEntityCountry) {
+    const fetchConfig = () => {
       SetupService.getStatus().then(c => setConfig(c)).catch(() => {});
+    };
+
+    if (!propEntityName || !propEntityCountry || !propEntityLogo) {
+      fetchConfig();
     }
-  }, [propEntityName, propEntityCountry]);
+
+    const handleConfigChange = () => {
+      fetchConfig();
+    };
+
+    window.addEventListener('fss_entity_config_changed', handleConfigChange);
+    return () => {
+      window.removeEventListener('fss_entity_config_changed', handleConfigChange);
+    };
+  }, [propEntityName, propEntityCountry, propEntityLogo]);
 
   const orgName = propEntityName || config?.entityName || "Fédération Nationale";
   const orgCountry = propEntityCountry || config?.entityCountry || "SN";

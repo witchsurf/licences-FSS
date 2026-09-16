@@ -11,9 +11,17 @@ export const Header: React.FC = () => {
   const [entityConfig, setEntityConfig] = useState<EntityConfig | null>(null);
 
   useEffect(() => {
-    SetupService.getStatus().then((cfg) => {
-      setEntityConfig(cfg);
-    });
+    const fetchConfig = () => {
+      SetupService.getStatus().then((cfg) => {
+        setEntityConfig(cfg);
+      });
+    };
+
+    fetchConfig();
+    window.addEventListener('fss_entity_config_changed', fetchConfig);
+    return () => {
+      window.removeEventListener('fss_entity_config_changed', fetchConfig);
+    };
   }, []);
 
   const handleLogout = async () => {

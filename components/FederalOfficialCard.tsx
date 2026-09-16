@@ -27,10 +27,11 @@ export const parseAffiliations = (affiliationsStr?: string | null): InstitutionA
             return { id: item.toLowerCase().replace(/\s+/g, '-'), name: item.trim() };
           }
           if (item && typeof item === 'object') {
+            const logo = (item.logoUrl && item.logoUrl !== '/logo.png') ? item.logoUrl : undefined;
             return {
               id: item.id || `inst-${index}`,
               name: item.name || '',
-              logoUrl: item.logoUrl || undefined,
+              logoUrl: logo,
             };
           }
           return null;
@@ -85,7 +86,7 @@ const PartnerMarks: React.FC<{ affiliations: InstitutionAffiliation[] }> = ({ af
     <div className="flex items-center gap-3">
       {affiliations.map((item, idx) => {
         // If a custom logo image was uploaded, display the real logo image
-        if (item.logoUrl) {
+        if (item.logoUrl && item.logoUrl !== '/logo.png') {
           return (
             <img
               key={item.id || idx}
@@ -141,10 +142,23 @@ export const FederalOfficialCard: React.FC<FederalOfficialCardProps> = ({
   const [config, setConfig] = useState<EntityConfig | null>(null);
 
   useEffect(() => {
-    if (!propEntityName || !propEntityCountry || propEntityAffiliations === undefined) {
+    const fetchConfig = () => {
       SetupService.getStatus().then(c => setConfig(c)).catch(() => {});
+    };
+
+    if (!propEntityName || !propEntityCountry || propEntityAffiliations === undefined || !propEntityLogo || !propEntityFlag) {
+      fetchConfig();
     }
-  }, [propEntityName, propEntityCountry, propEntityAffiliations]);
+
+    const handleConfigChange = () => {
+      fetchConfig();
+    };
+
+    window.addEventListener('fss_entity_config_changed', handleConfigChange);
+    return () => {
+      window.removeEventListener('fss_entity_config_changed', handleConfigChange);
+    };
+  }, [propEntityName, propEntityCountry, propEntityAffiliations, propEntityLogo, propEntityFlag]);
 
   const orgName = propEntityName || config?.entityName || "Fédération Sénégalaise de Surf";
   const orgCountry = propEntityCountry || config?.entityCountry || "SN";

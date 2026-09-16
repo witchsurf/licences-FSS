@@ -10,16 +10,46 @@ interface LicenseCardProps {
   license: License;
   entityName?: string;
   entityLogo?: string;
+  entityCountry?: string;
 }
 
-export const LicenseCard: React.FC<LicenseCardProps> = ({ license, entityName: propEntityName, entityLogo: propEntityLogo }) => {
+const getCountryStripColors = (country?: string | null): [string, string, string] => {
+  const code = (country || 'SN').trim().toUpperCase();
+  if (code === 'GA' || code === 'GABON') return ['#009E60', '#FCD116', '#0072CE'];
+  if (code === 'FR' || code === 'FRANCE') return ['#002395', '#FFFFFF', '#ED2939'];
+  if (code === 'CI' || code.includes("IVOIRE")) return ['#F77F00', '#FFFFFF', '#009E60'];
+  if (code === 'MA' || code === 'MAROC') return ['#C1272D', '#006233', '#C1272D'];
+  if (code === 'BR' || code.includes("BRESIL")) return ['#009C3B', '#FFDF00', '#002776'];
+  if (code === 'ES' || code === 'ESPAGNE') return ['#AA151B', '#F1BF00', '#AA151B'];
+  return ['#00853F', '#FCD116', '#E31B23'];
+};
+
+export const LicenseCard: React.FC<LicenseCardProps> = ({ 
+  license, 
+  entityName: propEntityName, 
+  entityLogo: propEntityLogo,
+  entityCountry: propEntityCountry
+}) => {
   const [config, setConfig] = React.useState<EntityConfig | null>(null);
 
   React.useEffect(() => {
-    if (!propEntityName) {
+    const fetchConfig = () => {
       SetupService.getStatus().then(c => setConfig(c)).catch(() => {});
+    };
+
+    if (!propEntityName || !propEntityCountry || !propEntityLogo) {
+      fetchConfig();
     }
-  }, [propEntityName]);
+
+    const handleConfigChange = () => {
+      fetchConfig();
+    };
+
+    window.addEventListener('fss_entity_config_changed', handleConfigChange);
+    return () => {
+      window.removeEventListener('fss_entity_config_changed', handleConfigChange);
+    };
+  }, [propEntityName, propEntityCountry, propEntityLogo]);
 
   const verifyUrl = `${window.location.origin}/#/verify/${license.id}`;
 
@@ -27,6 +57,9 @@ export const LicenseCard: React.FC<LicenseCardProps> = ({ license, entityName: p
   let textClass = "text-white";
   let headerTitleFr = "Licence Officielle";
   let headerTitleEn = "Official License";
+
+  const orgCountry = propEntityCountry || config?.entityCountry || "SN";
+  const [c1, c2, c3] = getCountryStripColors(orgCountry);
 
   let logoSrc = propEntityLogo || config?.entityLogo || "/logo.png";
   const orgName = propEntityName || config?.entityName || "Fédération Sénégalaise de Surf";
@@ -160,11 +193,11 @@ export const LicenseCard: React.FC<LicenseCardProps> = ({ license, entityName: p
         </div>
       </div>
 
-      {/* Decorative Senegal Tri-Color Bottom Bar */}
+      {/* Decorative Tri-Color Bottom Bar */}
       <div className="h-1.5 w-full flex opacity-90">
-        <div className="h-full w-1/3 bg-[#00853F]"></div>
-        <div className="h-full w-1/3 bg-[#FCD116]"></div>
-        <div className="h-full w-1/3 bg-[#E31B23]"></div>
+        <div className="h-full w-1/3" style={{ backgroundColor: c1 }}></div>
+        <div className="h-full w-1/3" style={{ backgroundColor: c2 }}></div>
+        <div className="h-full w-1/3" style={{ backgroundColor: c3 }}></div>
       </div>
     </div>
   );
