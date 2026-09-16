@@ -8,9 +8,10 @@ import {
   ChevronLeft, ChevronRight, LayoutDashboard, Users,
   Settings, LogOut, Search as SearchIcon, Filter,
   MoreVertical, ShieldCheck, AlertCircle, Clock, RotateCw, BadgeCheck,
-  Download, FileSpreadsheet
+  Download, FileSpreadsheet, CreditCard
 } from 'lucide-react';
 import { BulkImportModal } from '../components/BulkImportModal';
+import { PvcBatchExportModal } from '../components/PvcBatchExportModal';
 
 import {
   PieChart, Pie, Cell, ResponsiveContainer,
@@ -31,6 +32,7 @@ export const Dashboard: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [showStats, setShowStats] = useState(false);
   const itemsPerPage = 8;
+  const [pvcModalOpen, setPvcModalOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -377,6 +379,14 @@ export const Dashboard: React.FC = () => {
                 </button>
                 <button
                   type="button"
+                  onClick={() => setPvcModalOpen(true)}
+                  className="flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-slate-800 transition-colors"
+                  title="Exporter les cartes en PDF CR80 (85.6x54mm) ou Pack ZIP 300 DPI pour l'impression PVC industrielle"
+                >
+                  <CreditCard size={17} className="text-emerald-400" /> Export Imprimeur PVC
+                </button>
+                <button
+                  type="button"
                   onClick={handleBatchPrint}
                   className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-emerald-700 transition-colors"
                 >
@@ -637,6 +647,12 @@ export const Dashboard: React.FC = () => {
         setIsImportModalOpen(false);
         loadData();
       }}
+    />
+
+    <PvcBatchExportModal
+      isOpen={pvcModalOpen}
+      onClose={() => setPvcModalOpen(false)}
+      licenses={selectedLicenses}
     />
     </>
   );

@@ -3,13 +3,15 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { License } from '../types';
 import { LicenseService } from '../services/licenseService';
 import { LicenseCard } from '../components/LicenseCard';
-import { Printer, ArrowLeft, Loader2 } from 'lucide-react';
+import { Printer, ArrowLeft, Loader2, CreditCard } from 'lucide-react';
+import { PvcBatchExportModal } from '../components/PvcBatchExportModal';
 
 export const BatchPrint: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [licenses, setLicenses] = useState<License[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pvcModalOpen, setPvcModalOpen] = useState(false);
 
   const idsParam = searchParams.get('ids') || '';
 
@@ -62,6 +64,16 @@ export const BatchPrint: React.FC = () => {
           <span className="text-sm font-semibold text-slate-700">
             {licenses.length} licence{licenses.length > 1 ? 's' : ''} sur cette planche
           </span>
+
+          <button
+            onClick={() => setPvcModalOpen(true)}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-md transition-all"
+            title="Exporter les fichiers PDF CR80 ou PNG 300 DPI pour l'imprimeur PVC"
+          >
+            <CreditCard size={16} className="text-emerald-400" />
+            Export Imprimeur PVC (CR80)
+          </button>
+
           <button
             onClick={() => window.print()}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/20 transition-all"
@@ -91,6 +103,13 @@ export const BatchPrint: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* PVC Export Modal */}
+      <PvcBatchExportModal
+        isOpen={pvcModalOpen}
+        onClose={() => setPvcModalOpen(false)}
+        licenses={licenses}
+      />
 
       {/* Print styles */}
       <style>{`
