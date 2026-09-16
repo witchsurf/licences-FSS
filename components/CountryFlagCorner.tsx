@@ -41,6 +41,17 @@ export const CountryFlagCorner: React.FC<CountryFlagCornerProps> = ({
     );
   }
 
+  // GABON (Vert, Jaune, Bleu)
+  if (normalized === 'GA' || normalized === 'GABON') {
+    return (
+      <svg viewBox="0 0 140 140" className={className} aria-label="Drapeau du Gabon">
+        <polygon points="0,0 58,0 0,58" fill="#009E60" />
+        <polygon points="58,0 96,0 0,96 0,58" fill="#FCD116" />
+        <polygon points="96,0 140,0 0,140 0,96" fill="#0072CE" />
+      </svg>
+    );
+  }
+
   // 2. FRANCE
   if (normalized === 'FR' || normalized === 'FRANCE') {
     return (

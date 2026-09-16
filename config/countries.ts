@@ -7,6 +7,7 @@ export interface CountryOption {
 
 export const COUNTRIES: CountryOption[] = [
   { code: 'SN', name: 'Sénégal', flag: '🇸🇳' },
+  { code: 'GA', name: 'Gabon', flag: '🇬🇦' },
   { code: 'FR', name: 'France', flag: '🇫🇷' },
   { code: 'CI', name: "Côte d'Ivoire", flag: '🇨🇮' },
   { code: 'MA', name: 'Maroc', flag: '🇲🇦' },

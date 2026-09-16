@@ -15,13 +15,27 @@ interface FederalOfficialCardProps {
   entityFlag?: string;
 }
 
-const FlagStrip = () => (
-  <div className="h-1.5 w-full flex opacity-90">
-    <div className="h-full w-1/3 bg-[#00853F]" />
-    <div className="h-full w-1/3 bg-[#FCD116]" />
-    <div className="h-full w-1/3 bg-[#E31B23]" />
-  </div>
-);
+const getCountryStripColors = (country?: string | null): [string, string, string] => {
+  const code = (country || 'SN').trim().toUpperCase();
+  if (code === 'GA' || code === 'GABON') return ['#009E60', '#FCD116', '#0072CE'];
+  if (code === 'FR' || code === 'FRANCE') return ['#002395', '#FFFFFF', '#ED2939'];
+  if (code === 'CI' || code.includes("IVOIRE")) return ['#F77F00', '#FFFFFF', '#009E60'];
+  if (code === 'MA' || code === 'MAROC') return ['#C1272D', '#006233', '#C1272D'];
+  if (code === 'BR' || code.includes("BRESIL")) return ['#009C3B', '#FFDF00', '#002776'];
+  if (code === 'ES' || code === 'ESPAGNE') return ['#AA151B', '#F1BF00', '#AA151B'];
+  return ['#00853F', '#FCD116', '#E31B23'];
+};
+
+const FlagStrip: React.FC<{ country?: string | null }> = ({ country }) => {
+  const [c1, c2, c3] = getCountryStripColors(country);
+  return (
+    <div className="h-1.5 w-full flex opacity-90">
+      <div className="h-full w-1/3" style={{ backgroundColor: c1 }} />
+      <div className="h-full w-1/3" style={{ backgroundColor: c2 }} />
+      <div className="h-full w-1/3" style={{ backgroundColor: c3 }} />
+    </div>
+  );
+};
 
 const OlympicRings = () => (
   <svg viewBox="0 0 100 44" className="h-7 w-14" aria-label="CIO">
@@ -93,7 +107,7 @@ export const FederalOfficialCard: React.FC<FederalOfficialCardProps> = ({
           <p className="mt-2 text-[7px] font-bold uppercase tracking-[0.1em] text-emerald-700">Scanner pour consulter l'organigramme</p>
           <p className="mt-1 text-[6px] font-mono font-bold text-slate-400">{official.id}</p>
         </div>
-        <FlagStrip />
+        <FlagStrip country={orgCountry} />
       </div>
     );
   }
