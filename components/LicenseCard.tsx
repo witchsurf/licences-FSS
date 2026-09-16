@@ -92,50 +92,50 @@ export const LicenseCard: React.FC<LicenseCardProps> = ({ license, entityName: p
           <div className="space-y-2">
             <div className="flex justify-between items-start">
               <div className="min-w-0 flex-1">
-                <p className="text-[6.5px] text-slate-500 uppercase font-black tracking-widest mb-0.5">Titulaire / Holder</p>
+                <p className="text-[6.5px] text-slate-500 uppercase font-black tracking-widest mb-0.5 leading-normal">Titulaire / Holder</p>
                 <AutoFitText
                   maxFontSize={12}
                   minFontSize={7}
-                  className="font-black text-slate-900 leading-tight uppercase tracking-tight"
+                  className="font-black text-slate-900 leading-normal uppercase tracking-tight"
                 >
                   {license.lastName}
                 </AutoFitText>
                 <AutoFitText
                   maxFontSize={10}
                   minFontSize={7}
-                  className="font-bold text-slate-700 leading-tight"
+                  className="font-bold text-slate-700 leading-normal"
                 >
                   {license.firstName}
                 </AutoFitText>
               </div>
               <div className="text-right shrink-0 ml-2">
-                <p className="text-[6.5px] text-slate-500 uppercase font-black tracking-widest mb-0.5">N° Licence</p>
-                <p className="text-[12px] font-black text-red-600 leading-tight tracking-tighter font-mono">{license.id}</p>
+                <p className="text-[6.5px] text-slate-500 uppercase font-black tracking-widest mb-0.5 leading-normal">N° Licence</p>
+                <p className="text-[12px] font-black text-red-600 leading-normal tracking-tighter font-mono">{license.id}</p>
               </div>
             </div>
 
             <div className="grid grid-cols-[1.4fr_1fr] gap-2 border-t border-slate-100 pt-2">
               <div className="min-w-0">
-                <p className="text-[6px] text-slate-400 uppercase font-bold tracking-widest mb-0.5">Club Affilié</p>
+                <p className="text-[6px] text-slate-400 uppercase font-bold tracking-widest mb-0.5 leading-normal">Club Affilié</p>
                 <AutoFitText
                   maxFontSize={8.5}
                   minFontSize={5}
-                  className="font-black text-slate-800 leading-tight uppercase tracking-tight"
+                  className="font-black text-slate-800 leading-normal uppercase tracking-tight"
                 >
                   {license.club}
                 </AutoFitText>
               </div>
               <div className="min-w-0">
-                <p className="text-[6px] text-slate-400 uppercase font-bold tracking-widest mb-0.5">Catégorie</p>
-                <p className="text-[8.5px] font-black text-fss-green leading-tight uppercase truncate">{license.category}</p>
+                <p className="text-[6px] text-slate-400 uppercase font-bold tracking-widest mb-0.5 leading-normal">Catégorie</p>
+                <p className="text-[8.5px] font-black text-fss-green leading-normal uppercase overflow-visible">{license.category}</p>
               </div>
             </div>
           </div>
 
           <div className="flex justify-between items-end">
-            <div className="bg-slate-100 border border-slate-200 rounded-lg px-2 py-1.5">
-              <p className="text-[6.5px] text-slate-500 uppercase font-black tracking-widest mb-0.5 leading-none">Expiration</p>
-              <p className="text-[10px] font-black text-slate-900 leading-none">{new Date(license.expirationDate).toLocaleDateString('fr-FR')}</p>
+            <div className="bg-slate-100 border border-slate-200 rounded-lg px-2 py-1">
+              <p className="text-[6.5px] text-slate-500 uppercase font-black tracking-widest mb-0.5 leading-normal">Expiration</p>
+              <p className="text-[10px] font-black text-slate-900 leading-normal">{new Date(license.expirationDate).toLocaleDateString('fr-FR')}</p>
             </div>
 
             {/* QR Code Container */}

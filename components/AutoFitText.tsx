@@ -60,8 +60,8 @@ export const AutoFitText: React.FC<AutoFitTextProps> = ({
   return (
     <p
       ref={textRef}
-      className={`min-w-0 overflow-hidden whitespace-nowrap ${className}`}
-      style={{ fontSize: `${fontSize}px` }}
+      className={`min-w-0 overflow-visible whitespace-nowrap ${className}`}
+      style={{ fontSize: `${fontSize}px`, lineHeight: 1.35 }}
       title={children}
     >
       {children}

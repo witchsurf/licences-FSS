@@ -11,7 +11,7 @@ import {
   Layers,
   Printer
 } from 'lucide-react';
-import { License, FederalOfficial } from '../types';
+import { License, FederalOfficial, LicenseType } from '../types';
 import { LicenseCard } from './LicenseCard';
 import { LicenseCardVerso } from './LicenseCardVerso';
 import { FederalOfficialCard } from './FederalOfficialCard';
@@ -361,11 +361,10 @@ export const PvcBatchExportModal: React.FC<PvcBatchExportModalProps> = ({
         ref={hiddenContainerRef}
         style={{
           position: 'fixed',
-          left: '-9999px',
-          top: '-9999px',
-          width: '2000px',
-          zIndex: -1,
-          opacity: 0.01,
+          left: 0,
+          top: 0,
+          zIndex: -9999,
+          opacity: 0,
           pointerEvents: 'none',
         }}
       >
@@ -424,52 +423,57 @@ export const PvcBatchExportModal: React.FC<PvcBatchExportModalProps> = ({
             </React.Fragment>
           ))
         ) : (
-          licenses.map((license) => (
-            <React.Fragment key={license.id}>
-              {/* Recto */}
-              <div
-                data-pvc-card
-                data-card-id={license.id}
-                data-card-name={`${license.firstName}_${license.lastName}`}
-                data-card-side="recto"
-                style={{
-                  width: includeBleed ? '89.6mm' : '85.6mm',
-                  height: includeBleed ? '58.0mm' : '54.0mm',
-                  padding: includeBleed ? '2mm' : '0mm',
-                  backgroundColor: '#047857',
-                }}
-              >
-                <LicenseCard
-                  license={license}
-                  entityName={entityName}
-                  entityLogo={entityLogo}
-                />
-              </div>
-
-              {/* Verso */}
-              {includeVerso && (
+          licenses.map((license) => {
+            const bleedColor = license.type === LicenseType.LIGUE_PRO 
+              ? '#E31B23' 
+              : (license.type === LicenseType.LOISIR ? '#FCD116' : '#047857');
+            return (
+              <React.Fragment key={license.id}>
+                {/* Recto */}
                 <div
                   data-pvc-card
                   data-card-id={license.id}
                   data-card-name={`${license.firstName}_${license.lastName}`}
-                  data-card-side="verso"
+                  data-card-side="recto"
                   style={{
                     width: includeBleed ? '89.6mm' : '85.6mm',
                     height: includeBleed ? '58.0mm' : '54.0mm',
                     padding: includeBleed ? '2mm' : '0mm',
-                    backgroundColor: '#047857',
+                    backgroundColor: bleedColor,
                   }}
                 >
-                  <LicenseCardVerso
+                  <LicenseCard
                     license={license}
                     entityName={entityName}
                     entityLogo={entityLogo}
-                    entityCountry={entityCountry}
                   />
                 </div>
-              )}
-            </React.Fragment>
-          ))
+
+                {/* Verso */}
+                {includeVerso && (
+                  <div
+                    data-pvc-card
+                    data-card-id={license.id}
+                    data-card-name={`${license.firstName}_${license.lastName}`}
+                    data-card-side="verso"
+                    style={{
+                      width: includeBleed ? '89.6mm' : '85.6mm',
+                      height: includeBleed ? '58.0mm' : '54.0mm',
+                      padding: includeBleed ? '2mm' : '0mm',
+                      backgroundColor: bleedColor,
+                    }}
+                  >
+                    <LicenseCardVerso
+                      license={license}
+                      entityName={entityName}
+                      entityLogo={entityLogo}
+                      entityCountry={entityCountry}
+                    />
+                  </div>
+                )}
+              </React.Fragment>
+            );
+          })
         )}
       </div>
 

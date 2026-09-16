@@ -22,12 +22,35 @@ export class PvcExportService {
    */
   static async captureElementToCanvas(element: HTMLElement, options?: { scale?: number }): Promise<HTMLCanvasElement> {
     const scale = options?.scale || 3.125; // 300 DPI / 96 DPI ≈ 3.125
+
+    // Ensure all web fonts are fully loaded before rendering canvas
+    if (typeof document !== 'undefined' && document.fonts && document.fonts.ready) {
+      try {
+        await document.fonts.ready;
+      } catch (e) {
+        console.warn('Font loading wait warning:', e);
+      }
+    }
+
     return await html2canvas(element, {
       scale,
       useCORS: true,
       allowTaint: true,
       backgroundColor: null,
       logging: false,
+      onclone: (clonedDoc) => {
+        // Prevent vertical clipping on all cloned text elements
+        const textElements = clonedDoc.querySelectorAll<HTMLElement>('p, h1, h2, h3, span, strong');
+        textElements.forEach((el) => {
+          el.style.overflowY = 'visible';
+          el.style.overflow = 'visible';
+          // Ensure line-height provides sufficient vertical room for glyphs
+          const currentLineHeight = window.getComputedStyle(el).lineHeight;
+          if (currentLineHeight === 'normal' || parseFloat(currentLineHeight) <= parseFloat(window.getComputedStyle(el).fontSize) * 1.1) {
+            el.style.lineHeight = '1.35';
+          }
+        });
+      },
     });
   }
 
