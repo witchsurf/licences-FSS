@@ -33,6 +33,7 @@ export const Dashboard: React.FC = () => {
   const [showStats, setShowStats] = useState(false);
   const itemsPerPage = 8;
   const [pvcModalOpen, setPvcModalOpen] = useState(false);
+  const [exportTargetLicenses, setExportTargetLicenses] = useState<License[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -290,7 +291,18 @@ export const Dashboard: React.FC = () => {
               title="Exporter en CSV"
             >
               <Download size={18} />
-              <span className="hidden sm:inline">Export</span>
+              <span className="hidden sm:inline">Export CSV</span>
+            </button>
+            <button
+              onClick={() => {
+                setExportTargetLicenses(filteredLicenses.length > 0 ? filteredLicenses : licenses);
+                setPvcModalOpen(true);
+              }}
+              className="flex items-center gap-2 px-3 py-2 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-all shadow-sm"
+              title="Exporter la liste en format PVC CR80 pour l'imprimeur (PDF 1:1 ou ZIP 300 DPI)"
+            >
+              <CreditCard size={18} className="text-emerald-400" />
+              <span className="hidden sm:inline">Export PVC</span>
             </button>
             <Link to="/admin/create" className="btn-primary py-2 px-4 text-sm whitespace-nowrap">
               <Plus size={18} />
@@ -379,11 +391,14 @@ export const Dashboard: React.FC = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setPvcModalOpen(true)}
+                  onClick={() => {
+                    setExportTargetLicenses(selectedLicenses);
+                    setPvcModalOpen(true);
+                  }}
                   className="flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-slate-800 transition-colors"
                   title="Exporter les cartes en PDF CR80 (85.6x54mm) ou Pack ZIP 300 DPI pour l'impression PVC industrielle"
                 >
-                  <CreditCard size={17} className="text-emerald-400" /> Export Imprimeur PVC
+                  <CreditCard size={17} className="text-emerald-400" /> Export Imprimeur PVC ({selectedLicenses.length})
                 </button>
                 <button
                   type="button"
@@ -578,6 +593,16 @@ export const Dashboard: React.FC = () => {
                             <Printer size={18} />
                           </Link>
                           <button
+                            onClick={() => {
+                              setExportTargetLicenses([license]);
+                              setPvcModalOpen(true);
+                            }}
+                            className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all"
+                            title="Exporter en carte PVC CR80 pour imprimeur"
+                          >
+                            <CreditCard size={18} />
+                          </button>
+                          <button
                             onClick={() => handleStatusChange(license.id, license.status === LicenseStatus.VALID ? LicenseStatus.DISABLED : LicenseStatus.VALID)}
                             className={`p-2 rounded-xl transition-all ${license.status === LicenseStatus.VALID ? 'text-slate-400 hover:text-red-500 hover:bg-red-50' : 'text-slate-400 hover:text-emerald-500 hover:bg-emerald-50'}`}
                             title={license.status === LicenseStatus.VALID ? 'Désactiver' : 'Activer'}
@@ -651,8 +676,11 @@ export const Dashboard: React.FC = () => {
 
     <PvcBatchExportModal
       isOpen={pvcModalOpen}
-      onClose={() => setPvcModalOpen(false)}
-      licenses={selectedLicenses}
+      onClose={() => {
+        setPvcModalOpen(false);
+        setExportTargetLicenses([]);
+      }}
+      licenses={exportTargetLicenses.length > 0 ? exportTargetLicenses : (selectedLicenses.length > 0 ? selectedLicenses : filteredLicenses)}
     />
     </>
   );

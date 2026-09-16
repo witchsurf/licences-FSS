@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { License, FederalOfficial } from '../types';
 import { LicenseCard } from './LicenseCard';
+import { LicenseCardVerso } from './LicenseCardVerso';
 import { FederalOfficialCard } from './FederalOfficialCard';
 import { PvcExportService } from '../services/pvcExportService';
 
@@ -172,7 +173,7 @@ export const PvcBatchExportModal: React.FC<PvcBatchExportModalProps> = ({
               </div>
             </div>
             <span className="px-3 py-1 rounded-full bg-emerald-200/60 font-mono font-black text-xs text-emerald-800">
-              {isOfficials && includeVerso ? count * 2 : count} face{count > 1 ? 's' : ''}
+              {includeVerso ? count * 2 : count} face{count > 1 ? 's' : ''}
             </span>
           </div>
 
@@ -269,26 +270,24 @@ export const PvcBatchExportModal: React.FC<PvcBatchExportModalProps> = ({
               </div>
             </label>
 
-            {/* Verso toggle for federal officials */}
-            {isOfficials && (
-              <label className="flex items-start gap-3 cursor-pointer select-none pt-2 border-t border-slate-200">
-                <input
-                  type="checkbox"
-                  checked={includeVerso}
-                  disabled={isProcessing}
-                  onChange={(e) => setIncludeVerso(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300"
-                />
-                <div>
-                  <span className="font-bold text-xs text-slate-900 block">
-                    Inclure le verso officiel (Organigramme & QR Code)
-                  </span>
-                  <span className="text-xs text-slate-500">
-                    Génère le verso pour chaque carte pour impression recto/verso.
-                  </span>
-                </div>
-              </label>
-            )}
+            {/* Verso toggle */}
+            <label className="flex items-start gap-3 cursor-pointer select-none pt-2 border-t border-slate-200">
+              <input
+                type="checkbox"
+                checked={includeVerso}
+                disabled={isProcessing}
+                onChange={(e) => setIncludeVerso(e.target.checked)}
+                className="mt-0.5 w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300"
+              />
+              <div>
+                <span className="font-bold text-xs text-slate-900 block">
+                  Inclure le verso officiel ({isOfficials ? "Organigramme & QR Code" : "Assurance, Règlement & QR Code"})
+                </span>
+                <span className="text-xs text-slate-500">
+                  Génère le verso pour chaque carte pour impression double-face (Recto / Verso).
+                </span>
+              </div>
+            </label>
           </div>
 
           {/* Error display */}
@@ -422,25 +421,50 @@ export const PvcBatchExportModal: React.FC<PvcBatchExportModalProps> = ({
           ))
         ) : (
           licenses.map((license) => (
-            <div
-              key={license.id}
-              data-pvc-card
-              data-card-id={license.id}
-              data-card-name={`${license.firstName}_${license.lastName}`}
-              data-card-side="recto"
-              style={{
-                width: includeBleed ? '89.6mm' : '85.6mm',
-                height: includeBleed ? '58.0mm' : '54.0mm',
-                padding: includeBleed ? '2mm' : '0mm',
-                backgroundColor: '#047857',
-              }}
-            >
-              <LicenseCard
-                license={license}
-                entityName={entityName}
-                entityLogo={entityLogo}
-              />
-            </div>
+            <React.Fragment key={license.id}>
+              {/* Recto */}
+              <div
+                data-pvc-card
+                data-card-id={license.id}
+                data-card-name={`${license.firstName}_${license.lastName}`}
+                data-card-side="recto"
+                style={{
+                  width: includeBleed ? '89.6mm' : '85.6mm',
+                  height: includeBleed ? '58.0mm' : '54.0mm',
+                  padding: includeBleed ? '2mm' : '0mm',
+                  backgroundColor: '#047857',
+                }}
+              >
+                <LicenseCard
+                  license={license}
+                  entityName={entityName}
+                  entityLogo={entityLogo}
+                />
+              </div>
+
+              {/* Verso */}
+              {includeVerso && (
+                <div
+                  data-pvc-card
+                  data-card-id={license.id}
+                  data-card-name={`${license.firstName}_${license.lastName}`}
+                  data-card-side="verso"
+                  style={{
+                    width: includeBleed ? '89.6mm' : '85.6mm',
+                    height: includeBleed ? '58.0mm' : '54.0mm',
+                    padding: includeBleed ? '2mm' : '0mm',
+                    backgroundColor: '#047857',
+                  }}
+                >
+                  <LicenseCardVerso
+                    license={license}
+                    entityName={entityName}
+                    entityLogo={entityLogo}
+                    entityCountry={entityCountry}
+                  />
+                </div>
+              )}
+            </React.Fragment>
           ))
         )}
       </div>

@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { LicenseService } from '../services/licenseService';
 import { License } from '../types';
 import { LicenseCard } from '../components/LicenseCard';
-import { Printer, ArrowLeft, Download, Share2, Link as LinkIcon, Check, RotateCw } from 'lucide-react';
+import { Printer, ArrowLeft, Download, Share2, Link as LinkIcon, Check, RotateCw, CreditCard } from 'lucide-react';
+import { PvcBatchExportModal } from '../components/PvcBatchExportModal';
 
 export const ViewLicense: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -11,6 +12,7 @@ export const ViewLicense: React.FC = () => {
   const [license, setLicense] = useState<License | null>(null);
   const [copied, setCopied] = useState(false);
   const [rotated, setRotated] = useState(false);
+  const [pvcModalOpen, setPvcModalOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -81,18 +83,27 @@ export const ViewLicense: React.FC = () => {
 
             <button
               onClick={handleShare}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow-sm flex items-center gap-2 font-medium"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl shadow-sm flex items-center gap-2 text-sm font-bold transition-all"
             >
               <Share2 size={18} />
               <span>Partager</span>
             </button>
 
             <button
+              onClick={() => setPvcModalOpen(true)}
+              className="hidden sm:flex bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl shadow-sm items-center gap-2 text-sm font-bold transition-all"
+              title="Exporter en PDF CR80 1:1 ou PNG 300 DPI pour l'imprimeur PVC"
+            >
+              <CreditCard size={18} className="text-emerald-400" />
+              Export PVC (CR80)
+            </button>
+
+            <button
               onClick={handlePrint}
-              className="hidden sm:flex bg-fss-green hover:bg-green-700 text-white px-4 py-2 rounded shadow-sm items-center gap-2 font-medium"
+              className="hidden sm:flex bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl shadow-sm items-center gap-2 text-sm font-bold transition-all"
             >
               <Printer size={18} />
-              Imprimer
+              Imprimer A4
             </button>
           </div>
         </div>
@@ -123,6 +134,13 @@ export const ViewLicense: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* PVC Export Modal */}
+      <PvcBatchExportModal
+        isOpen={pvcModalOpen}
+        onClose={() => setPvcModalOpen(false)}
+        licenses={[license]}
+      />
     </div>
   );
 };
