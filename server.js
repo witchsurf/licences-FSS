@@ -30,7 +30,7 @@ app.use('/api/federal-officials', federalOfficialRoutes);
 
 // Compatibility endpoints for online web version
 app.get('/api/setup/status', (req, res) => {
-  res.json({ isSetup: true, entityName: 'Fédération Sénégalaise de Surf' });
+  res.json({ isSetup: true, entityName: 'Fédération Sénégalaise de Surf', entityCountry: 'SN' });
 });
 app.get('/api/activation/status', (req, res) => {
   res.json({ activated: true, valid: true });

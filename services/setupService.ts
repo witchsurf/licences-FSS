@@ -2,6 +2,8 @@ export interface EntityConfig {
   isSetup: boolean;
   entityName: string | null;
   entityAcronym?: string | null;
+  entityCountry?: string | null;
+  entityFlag?: string | null;
   entityLogo?: string | null;
   entityAddress?: string | null;
   entityPhone?: string | null;
@@ -11,6 +13,8 @@ export interface EntityConfig {
 export interface SetupPayload {
   entityName: string;
   entityAcronym?: string;
+  entityCountry?: string;
+  entityFlag?: string;
   entityLogo?: string;
   entityAddress?: string;
   entityPhone?: string;
@@ -54,6 +58,23 @@ export const SetupService = {
 
     if (!res.ok) {
       throw new Error('Erreur lors du téléchargement du logo');
+    }
+
+    const data = await res.json();
+    return data.url;
+  },
+
+  uploadFlag: async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('flag', file);
+
+    const res = await fetch('/api/setup/flag', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!res.ok) {
+      throw new Error('Erreur lors du téléchargement du drapeau');
     }
 
     const data = await res.json();

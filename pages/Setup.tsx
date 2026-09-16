@@ -14,8 +14,10 @@ import {
   Phone,
   Mail,
   MapPin,
-  Tag
+  Tag,
+  Globe
 } from 'lucide-react';
+import { COUNTRIES } from '../config/countries';
 
 export const Setup: React.FC = () => {
   const navigate = useNavigate();
@@ -26,6 +28,8 @@ export const Setup: React.FC = () => {
   // Form State
   const [entityName, setEntityName] = useState('');
   const [entityAcronym, setEntityAcronym] = useState('');
+  const [entityCountry, setEntityCountry] = useState('SN');
+  const [entityFlag, setEntityFlag] = useState('');
   const [entityLogo, setEntityLogo] = useState('');
   const [logoPreview, setLogoPreview] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
@@ -73,6 +77,8 @@ export const Setup: React.FC = () => {
       await SetupService.initialize({
         entityName,
         entityAcronym: entityAcronym.trim() || 'LIC',
+        entityCountry: entityCountry || 'SN',
+        entityFlag: entityFlag || undefined,
         entityLogo: entityLogo || logoPreview,
         entityAddress,
         entityPhone,
@@ -203,6 +209,27 @@ export const Setup: React.FC = () => {
                 />
                 <p className="text-xs text-slate-400 mt-1.5">
                   Format des licences générées : <span className="text-emerald-400 font-mono font-medium">{entityAcronym || 'LIC'}-{new Date().getFullYear()}-000001</span>
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <Globe size={14} className="text-emerald-400" />
+                  Pays officiel de l'organisation *
+                </label>
+                <select
+                  value={entityCountry}
+                  onChange={(e) => setEntityCountry(e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-sm"
+                >
+                  {COUNTRIES.map(c => (
+                    <option key={c.code} value={c.code} className="bg-slate-900 text-white">
+                      {c.flag} {c.name} ({c.code})
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-slate-400 mt-1.5">
+                  Le drapeau de ce pays apparaîtra dans le coin supérieur gauche des cartes officielles de cadres.
                 </p>
               </div>
 

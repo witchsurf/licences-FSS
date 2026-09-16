@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SetupService } from '../services/setupService';
 import { LicenseService } from '../services/licenseService';
+import { COUNTRIES, getCountryByCodeOrName } from '../config/countries';
 import { 
   Building2, 
   Upload, 
@@ -16,7 +17,10 @@ import {
   Phone,
   MapPin,
   Tag,
-  ShieldCheck
+  ShieldCheck,
+  Globe,
+  Flag,
+  RotateCcw
 } from 'lucide-react';
 
 export const Settings: React.FC = () => {
@@ -28,8 +32,11 @@ export const Settings: React.FC = () => {
   // Form states
   const [entityName, setEntityName] = useState('');
   const [entityAcronym, setEntityAcronym] = useState('');
+  const [entityCountry, setEntityCountry] = useState('SN');
   const [entityLogo, setEntityLogo] = useState('');
   const [logoPreview, setLogoPreview] = useState('');
+  const [entityFlag, setEntityFlag] = useState('');
+  const [flagPreview, setFlagPreview] = useState('');
   const [entityAddress, setEntityAddress] = useState('');
   const [entityPhone, setEntityPhone] = useState('');
   const [entityEmail, setEntityEmail] = useState('');
@@ -57,9 +64,14 @@ export const Settings: React.FC = () => {
       const config = await SetupService.getFullConfig();
       if (config.entityName) setEntityName(config.entityName);
       if (config.entityAcronym) setEntityAcronym(config.entityAcronym);
+      if (config.entityCountry) setEntityCountry(config.entityCountry);
       if (config.entityLogo) {
         setEntityLogo(config.entityLogo);
         setLogoPreview(config.entityLogo);
+      }
+      if (config.entityFlag) {
+        setEntityFlag(config.entityFlag);
+        setFlagPreview(config.entityFlag);
       }
       if (config.entityAddress) setEntityAddress(config.entityAddress);
       if (config.entityPhone) setEntityPhone(config.entityPhone);
@@ -93,6 +105,33 @@ export const Settings: React.FC = () => {
     }
   };
 
+  const handleFlagUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFlagPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    try {
+      setLoading(true);
+      const url = await SetupService.uploadFlag(file);
+      setEntityFlag(url);
+      setMessage({ type: 'success', text: 'Drapeau téléversé avec succès' });
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err.message || "Erreur lors de l'upload du drapeau" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetFlag = () => {
+    setEntityFlag('');
+    setFlagPreview('');
+  };
+
   const handleSaveGeneral = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -102,7 +141,9 @@ export const Settings: React.FC = () => {
       await SetupService.updateConfig({
         entityName,
         entityAcronym: entityAcronym.trim() || 'LIC',
+        entityCountry,
         entityLogo,
+        entityFlag,
         entityAddress,
         entityPhone,
         entityEmail,
@@ -254,26 +295,70 @@ export const Settings: React.FC = () => {
       {/* TAB 1: General Organization */}
       {activeTab === 'general' && (
         <form onSubmit={handleSaveGeneral} className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 sm:p-8 space-y-6">
-          <div className="flex items-center gap-4 pb-6 border-b border-slate-100">
-            {logoPreview ? (
-              <img 
-                src={logoPreview} 
-                alt="Logo organisation" 
-                className="w-20 h-20 rounded-2xl object-contain border border-slate-200 p-1 bg-slate-50 shadow-sm"
-              />
-            ) : (
-              <div className="w-20 h-20 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400">
-                <Building2 size={32} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6 border-b border-slate-100">
+            {/* Logo */}
+            <div className="flex items-center gap-4">
+              {logoPreview ? (
+                <img 
+                  src={logoPreview} 
+                  alt="Logo organisation" 
+                  className="w-20 h-20 rounded-2xl object-contain border border-slate-200 p-1 bg-slate-50 shadow-sm"
+                />
+              ) : (
+                <div className="w-20 h-20 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400">
+                  <Building2 size={32} />
+                </div>
+              )}
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Logo de l'entité</h3>
+                <p className="text-xs text-slate-500 mb-2">Affiché sur les cartes de licence, en-têtes et exports</p>
+                <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold cursor-pointer transition-colors border border-slate-200">
+                  <Upload size={14} />
+                  Changer le logo
+                  <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+                </label>
               </div>
-            )}
-            <div>
-              <h3 className="text-base font-bold text-slate-900">Logo de l'entité</h3>
-              <p className="text-xs text-slate-500 mb-2">Affiché sur les cartes de licence, en-têtes et exports officiels</p>
-              <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold cursor-pointer transition-colors border border-slate-200">
-                <Upload size={14} />
-                Changer le logo
-                <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
-              </label>
+            </div>
+
+            {/* Drapeau des cadres */}
+            <div className="flex items-center gap-4">
+              <div className="w-20 h-20 rounded-2xl border border-slate-200 bg-slate-50 overflow-hidden flex items-center justify-center relative shadow-sm">
+                {flagPreview ? (
+                  <img src={flagPreview} alt="Drapeau personnalisé" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="text-center">
+                    <span className="text-3xl block leading-none">{getCountryByCodeOrName(entityCountry).flag}</span>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase mt-1 block tracking-wider">{entityCountry}</span>
+                  </div>
+                )}
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-1.5">
+                  <Flag size={16} className="text-emerald-600" />
+                  Drapeau licences cadres
+                </h3>
+                <p className="text-xs text-slate-500 mb-2">
+                  {flagPreview ? "Drapeau personnalisé actif" : `Drapeau officiel (${getCountryByCodeOrName(entityCountry).name})`}
+                </p>
+                <div className="flex items-center gap-2">
+                  <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold cursor-pointer transition-colors border border-slate-200">
+                    <Upload size={14} />
+                    {flagPreview ? "Changer" : "Personnaliser"}
+                    <input type="file" accept="image/*" className="hidden" onChange={handleFlagUpload} />
+                  </label>
+                  {flagPreview && (
+                    <button
+                      type="button"
+                      onClick={handleResetFlag}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-slate-500 hover:text-red-600 text-xs font-medium hover:bg-red-50 transition-colors"
+                      title="Revenir au drapeau officiel national"
+                    >
+                      <RotateCcw size={13} />
+                      Défaut
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -287,7 +372,7 @@ export const Settings: React.FC = () => {
                 required
                 value={entityName}
                 onChange={(e) => setEntityName(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-medium"
               />
             </div>
 
@@ -305,6 +390,43 @@ export const Settings: React.FC = () => {
                 className="w-full px-4 py-2.5 rounded-xl border border-slate-300 uppercase focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm"
               />
               <p className="text-xs text-slate-400 mt-1">Exemple : {entityAcronym || 'LIC'}-{new Date().getFullYear()}-000001</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <Globe size={14} className="text-emerald-600" />
+                Pays de l'organisateur *
+              </label>
+              <select
+                value={entityCountry}
+                onChange={(e) => setEntityCountry(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-medium cursor-pointer"
+              >
+                {COUNTRIES.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.flag} {c.name} ({c.code})
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-slate-400 mt-1">
+                Définit le drapeau affiché sur le coin supérieur gauche des licences cadres.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <MapPin size={14} className="text-emerald-600" />
+                Adresse du siège
+              </label>
+              <input
+                type="text"
+                value={entityAddress}
+                onChange={(e) => setEntityAddress(e.target.value)}
+                placeholder="Adresse, Ville, Code Postal"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm"
+              />
             </div>
           </div>
 
@@ -336,20 +458,6 @@ export const Settings: React.FC = () => {
                 className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm"
               />
             </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <MapPin size={14} className="text-emerald-600" />
-              Adresse du siège
-            </label>
-            <input
-              type="text"
-              value={entityAddress}
-              onChange={(e) => setEntityAddress(e.target.value)}
-              placeholder="Adresse, Ville, Code Postal"
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm"
-            />
           </div>
 
           <div className="pt-4 border-t border-slate-100 flex justify-end">

@@ -28,6 +28,9 @@ router.get('/status', (req, res) => {
     res.json({
       isSetup: !!config.entityName,
       entityName: config.entityName || null,
+      entityAcronym: config.entityAcronym || null,
+      entityCountry: config.entityCountry || 'SN',
+      entityFlag: config.entityFlag || null,
       entityLogo: config.entityLogo || null,
     });
   } catch (err) {
@@ -65,6 +68,21 @@ router.post('/logo', upload.single('logo'), (req, res) => {
 });
 
 /**
+ * Upload entity custom flag.
+ */
+router.post('/flag', upload.single('flag'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'Aucun fichier fourni' });
+
+  try {
+    const url = savePhoto(req.file.buffer, req.file.originalname);
+    res.json({ url });
+  } catch (err) {
+    console.error('Error uploading flag:', err);
+    res.status(500).json({ error: "Erreur lors de l'upload du drapeau" });
+  }
+});
+
+/**
  * Initial setup — configure entity.
  * This can only be called once (when no entity is configured yet).
  */
@@ -75,7 +93,7 @@ router.post('/initialize', (req, res) => {
       return res.status(400).json({ error: 'L\'entité a déjà été configurée' });
     }
 
-    const { entityName, entityAcronym, entityLogo, entityAddress, entityPhone, entityEmail, adminPassword } = req.body;
+    const { entityName, entityAcronym, entityCountry, entityFlag, entityLogo, entityAddress, entityPhone, entityEmail, adminPassword } = req.body;
 
     if (!entityName || !adminPassword) {
       return res.status(400).json({ error: 'Le nom de l\'entité et le mot de passe admin sont requis' });
@@ -84,6 +102,8 @@ router.post('/initialize', (req, res) => {
     // Save entity config
     db.setEntityConfig('entityName', entityName);
     if (entityAcronym) db.setEntityConfig('entityAcronym', entityAcronym.toUpperCase());
+    if (entityCountry) db.setEntityConfig('entityCountry', entityCountry);
+    if (entityFlag) db.setEntityConfig('entityFlag', entityFlag);
     if (entityLogo) db.setEntityConfig('entityLogo', entityLogo);
     if (entityAddress) db.setEntityConfig('entityAddress', entityAddress);
     if (entityPhone) db.setEntityConfig('entityPhone', entityPhone);
@@ -107,10 +127,12 @@ router.post('/initialize', (req, res) => {
  */
 router.put('/config', authenticate, (req, res) => {
   try {
-    const { entityName, entityAcronym, entityLogo, entityAddress, entityPhone, entityEmail, adminPassword } = req.body;
+    const { entityName, entityAcronym, entityCountry, entityFlag, entityLogo, entityAddress, entityPhone, entityEmail, adminPassword } = req.body;
 
     if (entityName) db.setEntityConfig('entityName', entityName);
     if (entityAcronym) db.setEntityConfig('entityAcronym', entityAcronym.toUpperCase());
+    if (entityCountry !== undefined) db.setEntityConfig('entityCountry', entityCountry);
+    if (entityFlag !== undefined) db.setEntityConfig('entityFlag', entityFlag);
     if (entityLogo) db.setEntityConfig('entityLogo', entityLogo);
     if (entityAddress !== undefined) db.setEntityConfig('entityAddress', entityAddress);
     if (entityPhone !== undefined) db.setEntityConfig('entityPhone', entityPhone);
