@@ -4,7 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import helmet from 'helmet';
 import authRoutes from './server/routes/auth.js';
-import licenseRoutes from './server/routes/licenses.js';
+import licenseRoutes, { regularizeLicensesInSupabase } from './server/routes/licenses.js';
 import federalOfficialRoutes from './server/routes/federalOfficials.js';
 import multer from 'multer';
 import { supabase, PORT } from './server/config/supabase.js';
@@ -28,6 +28,11 @@ app.use(express.static(path.join(__dirname, 'dist')));
 app.use('/api', authRoutes);
 app.use('/api/licenses', licenseRoutes);
 app.use('/api/federal-officials', federalOfficialRoutes);
+
+// Automatic regularization of existing 2026 licenses in Supabase
+regularizeLicensesInSupabase().catch((err) => {
+  console.warn('Startup license regularization notice:', err.message);
+});
 
 // --- Entity Configuration & Setup Persistence ---
 const storage = multer.memoryStorage();

@@ -154,6 +154,17 @@ router.get('/:id', (req, res) => {
   }
 });
 
+// Regularize existing licenses & officials to calendar year expiration (YYYY-12-31)
+router.post('/regularize', authenticate, (req, res) => {
+  try {
+    const result = db.regularizeExpirations();
+    res.json({ success: true, updatedCount: result.updatedCount });
+  } catch (err) {
+    console.error('Error regularizing licenses in SQLite:', err);
+    res.status(500).json({ error: 'Erreur lors de la régularisation' });
+  }
+});
+
 // Create
 router.post('/', authenticate, (req, res) => {
   const validation = licenseSchema.safeParse(req.body);
@@ -162,9 +173,13 @@ router.post('/', authenticate, (req, res) => {
   }
 
   try {
+    const issueYear = (validation.data.issueDate || '').slice(0, 4) || new Date().getFullYear();
+    const calendarExpiration = `${issueYear}-12-31`;
+
     const licenseData = {
       ...validation.data,
       club: normalizeClubName(validation.data.club),
+      expirationDate: validation.data.expirationDate || calendarExpiration,
     };
     const newLicense = db.createLicense(licenseData);
     saveClubToDb(newLicense.club);

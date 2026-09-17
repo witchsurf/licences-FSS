@@ -161,5 +161,18 @@ export const LicenseService = {
       error.details = errorData.details;
       throw error;
     }
-  }
+  },
+
+  regularizeExpirations: async (): Promise<{ success: boolean; updatedCount: number }> => {
+    const res = await fetch('/api/licenses/regularize', {
+      method: 'POST',
+      credentials: 'include',
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Erreur lors de la régularisation des licences');
+    }
+    return await res.json();
+  },
 };
+

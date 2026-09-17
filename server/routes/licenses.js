@@ -170,6 +170,65 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+// Regularize all licenses & officials to calendar year expiration (YYYY-12-31)
+export const regularizeLicensesInSupabase = async () => {
+    try {
+        const { data: licenses, error } = await supabase
+            .from('licenses')
+            .select('id, issueDate, expirationDate');
+
+        if (error) throw error;
+
+        let updated = 0;
+        for (const lic of licenses || []) {
+            const year = (lic.issueDate || '').slice(0, 4) || (lic.id && lic.id.includes('-2026-') ? '2026' : null);
+            if (year && year.length === 4) {
+                const targetExp = `${year}-12-31`;
+                if (lic.expirationDate !== targetExp) {
+                    await supabase
+                        .from('licenses')
+                        .update({ expirationDate: targetExp })
+                        .eq('id', lic.id);
+                    updated++;
+                }
+            }
+        }
+
+        const { data: officials, error: offErr } = await supabase
+            .from('federal_officials')
+            .select('id, issueDate, expirationDate');
+
+        if (!offErr && officials) {
+            for (const off of officials) {
+                const year = (off.issueDate || '').slice(0, 4) || (off.id && off.id.includes('-2026-') ? '2026' : null);
+                if (year && year.length === 4) {
+                    const targetExp = `${year}-12-31`;
+                    if (off.expirationDate !== targetExp) {
+                        await supabase
+                            .from('federal_officials')
+                            .update({ expirationDate: targetExp })
+                            .eq('id', off.id);
+                        updated++;
+                    }
+                }
+            }
+        }
+
+        return { success: true, updatedCount: updated };
+    } catch (e) {
+        console.warn('Regularization notice:', e.message || e);
+        return { success: false, error: e.message, updatedCount: 0 };
+    }
+};
+
+router.post('/regularize', authenticate, async (req, res) => {
+    const result = await regularizeLicensesInSupabase();
+    if (!result.success && result.error) {
+        return res.status(500).json({ error: 'Erreur lors de la régularisation', details: result.error });
+    }
+    res.json(result);
+});
+
 // Create
 router.post('/', authenticate, async (req, res) => {
     const validation = licenseSchema.safeParse(req.body);
@@ -179,9 +238,13 @@ router.post('/', authenticate, async (req, res) => {
         const { data: newId, error: rpcError } = await supabase.rpc('generate_next_license_id');
         if (rpcError) throw rpcError;
 
+        const issueYear = (validation.data.issueDate || '').slice(0, 4) || new Date().getFullYear();
+        const calendarExpiration = `${issueYear}-12-31`;
+
         const newLicense = {
             ...validation.data,
             club: normalizeClubName(validation.data.club),
+            expirationDate: validation.data.expirationDate || calendarExpiration,
             id: newId,
             status: 'VALIDE',
             createdAt: Date.now(),

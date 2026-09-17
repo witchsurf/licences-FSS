@@ -275,6 +275,27 @@ export const Settings: React.FC = () => {
     }
   };
 
+  const [regularizing, setRegularizing] = useState(false);
+
+  const handleRegularize = async () => {
+    setRegularizing(true);
+    setMessage(null);
+    try {
+      const res = await LicenseService.regularizeExpirations();
+      setMessage({
+        type: 'success',
+        text: `Régularisation réussie : ${res.updatedCount} licence(s) et cadre(s) mis à jour avec échéance au 31/12 !`
+      });
+    } catch (err: any) {
+      setMessage({
+        type: 'error',
+        text: err.message || 'Erreur lors de la régularisation'
+      });
+    } finally {
+      setRegularizing(false);
+    }
+  };
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
       {/* Header */}
@@ -716,6 +737,29 @@ export const Settings: React.FC = () => {
       {/* TAB 3: Backup & Restore */}
       {activeTab === 'backup' && (
         <div className="space-y-6">
+          {/* Calendar Year Regularization card */}
+          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 sm:p-8">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <RotateCcw size={20} className="text-blue-600" />
+                  Régularisation des Licences (Année Civile 31/12)
+                </h3>
+                <p className="text-xs text-slate-500 mt-1 max-w-xl">
+                  Les licences sportives et cartes de cadres sont valables pour l'année civile complète (échéance stricte au 31 décembre). Cliquez sur ce bouton pour vérifier et réaligner immédiatement toutes les licences de 2026 (et antérieures) vers le 31/12.
+                </p>
+              </div>
+              <button
+                disabled={regularizing}
+                onClick={handleRegularize}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold transition-colors shrink-0 shadow-md"
+              >
+                <RotateCcw size={16} className={regularizing ? 'animate-spin' : ''} />
+                {regularizing ? 'Vérification...' : 'Régulariser au 31/12/2026'}
+              </button>
+            </div>
+          </div>
+
           {/* Export card */}
           <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 sm:p-8">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

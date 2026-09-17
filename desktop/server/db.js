@@ -92,7 +92,57 @@ function initializeSchema() {
   insertSeq.run('license_seq');
   insertSeq.run('federal_official_seq');
 
+  // Regularize all licenses & federal officials to calendar year expiration (YYYY-12-31)
+  try {
+    database.exec(`
+      UPDATE licenses 
+      SET expirationDate = CASE 
+        WHEN id LIKE '%-2026-%' OR issueDate LIKE '2026%' THEN '2026-12-31'
+        ELSE substr(issueDate, 1, 4) || '-12-31'
+      END
+      WHERE expirationDate != (CASE WHEN id LIKE '%-2026-%' OR issueDate LIKE '2026%' THEN '2026-12-31' ELSE substr(issueDate, 1, 4) || '-12-31' END);
+
+      UPDATE federal_officials 
+      SET expirationDate = CASE 
+        WHEN id LIKE '%-2026-%' OR issueDate LIKE '2026%' THEN '2026-12-31'
+        ELSE substr(issueDate, 1, 4) || '-12-31'
+      END
+      WHERE expirationDate != (CASE WHEN id LIKE '%-2026-%' OR issueDate LIKE '2026%' THEN '2026-12-31' ELSE substr(issueDate, 1, 4) || '-12-31' END);
+    `);
+  } catch (e) {
+    console.warn('SQLite regularization notice:', e.message);
+  }
+
   console.log('✅ Database schema initialized');
+}
+
+function regularizeExpirations() {
+  const database = getDb();
+  let updatedCount = 0;
+  try {
+    const licRes = database.prepare(`
+      UPDATE licenses 
+      SET expirationDate = CASE 
+        WHEN id LIKE '%-2026-%' OR issueDate LIKE '2026%' THEN '2026-12-31'
+        ELSE substr(issueDate, 1, 4) || '-12-31'
+      END
+      WHERE expirationDate != (CASE WHEN id LIKE '%-2026-%' OR issueDate LIKE '2026%' THEN '2026-12-31' ELSE substr(issueDate, 1, 4) || '-12-31' END)
+    `).run();
+
+    const offRes = database.prepare(`
+      UPDATE federal_officials 
+      SET expirationDate = CASE 
+        WHEN id LIKE '%-2026-%' OR issueDate LIKE '2026%' THEN '2026-12-31'
+        ELSE substr(issueDate, 1, 4) || '-12-31'
+      END
+      WHERE expirationDate != (CASE WHEN id LIKE '%-2026-%' OR issueDate LIKE '2026%' THEN '2026-12-31' ELSE substr(issueDate, 1, 4) || '-12-31' END)
+    `).run();
+
+    updatedCount = (licRes?.changes || 0) + (offRes?.changes || 0);
+  } catch (e) {
+    console.error('Error in regularizeExpirations:', e);
+  }
+  return { updatedCount };
 }
 
 // Entity Config functions
@@ -280,5 +330,6 @@ module.exports = {
   deleteFederalOfficial,
   getEntityConfig,
   setEntityConfig,
+  regularizeExpirations,
   closeDb,
 };

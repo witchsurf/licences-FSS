@@ -50,7 +50,9 @@ export const PublicVerify: React.FC = () => {
     </div>
   );
 
-  const isExpired = new Date(license.expirationDate) < new Date();
+  const expiry = new Date(license.expirationDate);
+  expiry.setHours(23, 59, 59, 999);
+  const isExpired = expiry.getTime() < Date.now();
   const isValid = license.status === LicenseStatus.VALID && !isExpired;
 
   return (

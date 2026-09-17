@@ -97,9 +97,13 @@ export const LicenseForm: React.FC = () => {
           }
         }
       } else {
-        const expDate = new Date();
-        expDate.setFullYear(expDate.getFullYear() + 1);
-        setFormData(prev => ({ ...prev, expirationDate: expDate.toISOString().split('T')[0] }));
+        const issueDate = new Date().toISOString().split('T')[0];
+        const year = new Date().getFullYear();
+        setFormData(prev => ({ 
+          ...prev, 
+          issueDate,
+          expirationDate: `${year}-12-31` 
+        }));
       }
     };
     init();
@@ -334,7 +338,15 @@ export const LicenseForm: React.FC = () => {
                 <input
                   type="date"
                   value={formData.issueDate}
-                  onChange={e => setFormData({ ...formData, issueDate: e.target.value })}
+                  onChange={e => {
+                    const newIssue = e.target.value;
+                    const year = newIssue ? new Date(newIssue).getFullYear() : new Date().getFullYear();
+                    setFormData({ 
+                      ...formData, 
+                      issueDate: newIssue,
+                      expirationDate: `${year}-12-31`
+                    });
+                  }}
                   className={inputClasses}
                   required
                 />
@@ -348,6 +360,9 @@ export const LicenseForm: React.FC = () => {
                   className={inputClasses}
                   required
                 />
+                <p className="text-[10px] text-slate-400 mt-1">
+                  Validité annuelle stricte (échéance au 31 décembre de l'année civile).
+                </p>
               </div>
             </div>
 

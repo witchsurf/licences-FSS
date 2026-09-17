@@ -133,9 +133,10 @@ export const Dashboard: React.FC = () => {
     const matchesClub = !filterClub || l.club === filterClub;
     const matchesStatus = !filterStatus || l.status === filterStatus;
     const matchesExpiringSoon = !filterExpiringSoon || (() => {
-      const exp = new Date(l.expirationDate).getTime();
+      const exp = new Date(l.expirationDate);
+      exp.setHours(23, 59, 59, 999);
       const now = Date.now();
-      const diffDays = (exp - now) / (1000 * 60 * 60 * 24);
+      const diffDays = (exp.getTime() - now) / (1000 * 60 * 60 * 24);
       return diffDays >= 0 && diffDays <= 30;
     })();
 
@@ -175,12 +176,12 @@ export const Dashboard: React.FC = () => {
 
   const handleRenew = async (license: License) => {
     const currentExpiry = new Date(license.expirationDate);
-    const newExpiry = new Date(isNaN(currentExpiry.getTime()) ? Date.now() : currentExpiry.getTime());
-    newExpiry.setFullYear(newExpiry.getFullYear() + 1);
-    const newExpiryStr = newExpiry.toISOString().slice(0, 10);
-    const newIssueStr = new Date().toISOString().slice(0, 10);
+    const currentYear = !isNaN(currentExpiry.getTime()) ? currentExpiry.getFullYear() : new Date().getFullYear();
+    const nextYear = Math.max(currentYear + 1, new Date().getFullYear());
+    const newExpiryStr = `${nextYear}-12-31`;
+    const newIssueStr = `${nextYear}-01-01`;
 
-    if (confirm(`Renouveler la licence de ${license.firstName} ${license.lastName} jusqu'au ${newExpiryStr} ?`)) {
+    if (confirm(`Renouveler la licence de ${license.firstName} ${license.lastName} pour la saison ${nextYear} (jusqu'au 31/12/${nextYear}) ?`)) {
       try {
         await LicenseService.update(license.id, {
           expirationDate: newExpiryStr,
