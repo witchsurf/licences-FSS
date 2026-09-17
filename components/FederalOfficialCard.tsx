@@ -67,10 +67,10 @@ const FlagStrip: React.FC<{ country?: string | null }> = ({ country }) => {
   );
 };
 
-export const OlympicRings: React.FC<{ className?: string }> = ({ className = "h-6.5 sm:h-7" }) => (
+export const OlympicRings: React.FC<{ className?: string }> = ({ className = "h-7 sm:h-7.5" }) => (
   <svg 
     viewBox="0 0 100 42" 
-    className={`${className} w-auto max-h-[7mm] max-w-[22mm] shrink-0`} 
+    className={`${className} w-auto max-h-[7.5mm] max-w-[24mm] shrink-0`} 
     fill="none" 
     strokeWidth="3.8"
     role="img"
@@ -88,17 +88,17 @@ export const OlympicRings: React.FC<{ className?: string }> = ({ className = "h-
 );
 
 export const CNOSSBadge: React.FC<{ className?: string; title?: string }> = ({ 
-  className = "h-6.5 sm:h-7", 
+  className = "h-7 sm:h-7.5", 
   title = "Comité National Olympique et Sportif Sénégalais" 
 }) => (
   <svg 
-    viewBox="0 0 130 42" 
-    className={`${className} w-auto max-h-[7mm] max-w-[24mm] shrink-0`} 
+    viewBox="0 0 135 42" 
+    className={`${className} w-auto max-h-[7.5mm] max-w-[26mm] shrink-0`} 
     role="img" 
     aria-label={title}
   >
     <title>{title}</title>
-    {/* Circular Olympic Crest on the left (proportional to ASC height) */}
+    {/* Circular Olympic Crest on the left */}
     <g transform="translate(2, 2)">
       <circle cx="19" cy="19" r="18" fill="#ffffff" stroke="#00853F" strokeWidth="1.5" />
       <circle cx="19" cy="19" r="16.5" fill="none" stroke="#FCD116" strokeWidth="0.8" />
@@ -126,10 +126,10 @@ export const CNOSSBadge: React.FC<{ className?: string; title?: string }> = ({
 
     {/* Bold CNOSS text matching ASC typography and scale */}
     <text 
-      x="43" 
+      x="44" 
       y="26" 
       fontFamily="system-ui, -apple-system, sans-serif" 
-      fontSize="24" 
+      fontSize="25" 
       fontWeight="900" 
       letterSpacing="-0.01em" 
       fill="#00853F"
@@ -137,7 +137,7 @@ export const CNOSSBadge: React.FC<{ className?: string; title?: string }> = ({
       CNOSS
     </text>
     <text 
-      x="44" 
+      x="45" 
       y="38" 
       fontFamily="system-ui, -apple-system, sans-serif" 
       fontSize="7.5" 
@@ -150,10 +150,10 @@ export const CNOSSBadge: React.FC<{ className?: string; title?: string }> = ({
   </svg>
 );
 
-export const ISASurfLogo: React.FC<{ className?: string }> = ({ className = "h-6.5 sm:h-7" }) => (
+export const ISASurfLogo: React.FC<{ className?: string }> = ({ className = "h-7 sm:h-7.5" }) => (
   <svg 
     viewBox="0 0 135 42" 
-    className={`${className} w-auto max-h-[7mm] max-w-[24mm] shrink-0`} 
+    className={`${className} w-auto max-h-[7.5mm] max-w-[26mm] shrink-0`} 
     role="img" 
     aria-label="International Surfing Association"
   >
@@ -192,10 +192,10 @@ export const ISASurfLogo: React.FC<{ className?: string }> = ({ className = "h-6
   </svg>
 );
 
-export const ASCSurfLogo: React.FC<{ className?: string }> = ({ className = "h-6.5 sm:h-7" }) => (
+export const ASCSurfLogo: React.FC<{ className?: string }> = ({ className = "h-7 sm:h-7.5" }) => (
   <svg 
     viewBox="0 0 135 42" 
-    className={`${className} w-auto max-h-[7mm] max-w-[24mm] shrink-0`} 
+    className={`${className} w-auto max-h-[7.5mm] max-w-[26mm] shrink-0`} 
     role="img" 
     aria-label="African Surfing Confederation"
   >
@@ -240,32 +240,33 @@ export const PartnerMarks: React.FC<{ affiliations: InstitutionAffiliation[] }> 
   return (
     <div className="flex items-center gap-2.5 sm:gap-3">
       {affiliations.map((item, idx) => {
-        // 1. GENERIC RULE: Always respect and display the user's uploaded logo image!
-        if (item.logoUrl && item.logoUrl !== '/logo.png' && item.logoUrl !== '/isa_logo.svg') {
+        const upper = item.name.trim().toUpperCase();
+
+        // 1. Calibrated HD vector marks strictly proportional to ASC
+        if (upper.includes('CNOSS')) {
+          return <CNOSSBadge key={item.id || idx} className="h-7 sm:h-7.5" />;
+        }
+        if (upper === 'ISA') {
+          return <ISASurfLogo key={item.id || idx} className="h-7 sm:h-7.5" />;
+        }
+        if (upper === 'ASC') {
+          return <ASCSurfLogo key={item.id || idx} className="h-7 sm:h-7.5" />;
+        }
+        if (upper === 'CIO' || upper.includes('OLYMP')) {
+          return <OlympicRings key={item.id || idx} className="h-7 sm:h-7.5" />;
+        }
+
+        // 2. Custom logo for other institutions with proportional height constraint
+        if (item.logoUrl && item.logoUrl !== '/logo.png') {
           return (
             <img
               key={item.id || idx}
               src={item.logoUrl}
               alt={item.name}
-              className="h-6.5 sm:h-7 max-h-[7mm] max-w-[24mm] object-contain shrink-0"
+              className="h-7 sm:h-7.5 max-h-[7.5mm] max-w-[26mm] object-contain shrink-0"
               style={{ imageRendering: '-webkit-optimize-contrast' }}
             />
           );
-        }
-
-        // 2. Generic fallbacks when NO custom image is uploaded
-        const upper = item.name.trim().toUpperCase();
-        if (upper.includes('CNOSS')) {
-          return <CNOSSBadge key={item.id || idx} className="h-6.5 sm:h-7" />;
-        }
-        if (upper === 'CIO' || upper.includes('OLYMP')) {
-          return <OlympicRings key={item.id || idx} className="h-6.5 sm:h-7" />;
-        }
-        if (upper === 'ISA') {
-          return <ISASurfLogo key={item.id || idx} className="h-6.5 sm:h-7" />;
-        }
-        if (upper === 'ASC') {
-          return <ASCSurfLogo key={item.id || idx} className="h-6.5 sm:h-7" />;
         }
 
         return (
