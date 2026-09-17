@@ -80,63 +80,43 @@ export const OlympicRings: React.FC<{ className?: string }> = ({ className = "h-
 );
 
 export const CNOSSBadge: React.FC<{ className?: string; title?: string }> = ({ 
-  className = "h-8 w-8 sm:h-9 sm:w-9",
+  className = "h-8 sm:h-9",
   title = "Comité National Olympique et Sportif Sénégalais"
 }) => (
-  <svg 
-    viewBox="0 0 100 100" 
-    className={`${className} shrink-0`} 
-    role="img" 
-    aria-label={title}
-  >
-    <title>{title}</title>
-    {/* Outer circle */}
-    <circle cx="50" cy="50" r="48" fill="#ffffff" stroke="#00853F" strokeWidth="2.5" />
-    <circle cx="50" cy="50" r="44.5" fill="none" stroke="#FCD116" strokeWidth="1" strokeDasharray="2.5,1.5" />
-    
-    {/* Circular text arc */}
-    <path id="cnoss-text-arc" d="M 16,50 A 34,34 0 1,1 84,50" fill="none" />
-    <text className="text-[4.8px] font-black uppercase fill-slate-800 tracking-wider">
-      <textPath href="#cnoss-text-arc" startOffset="50%" textAnchor="middle">
-        C.N.O.S.S. · SÉNÉGAL
-      </textPath>
-    </text>
-    
-    {/* Senegal Tricolor Flag in Center */}
-    <g transform="translate(33, 26)">
-      <rect x="0" y="0" width="11.3" height="23" rx="1.5" fill="#00853F" />
-      <rect x="11.3" y="0" width="11.3" height="23" fill="#FCD116" />
-      <rect x="22.6" y="0" width="11.3" height="23" rx="1.5" fill="#E31B23" />
-      {/* 5-pointed green star in center of yellow band */}
-      <polygon
-        points="17,6.5 18.6,11.5 23.8,11.5 19.6,14.6 21.2,19.6 17,16.5 12.8,19.6 14.4,14.6 10.2,11.5 15.4,11.5"
-        fill="#00853F"
-      />
-    </g>
+  <div className={`${className} flex items-center gap-1.5 shrink-0`} role="img" aria-label={title}>
+    {/* Circular Olympic Crest */}
+    <svg viewBox="0 0 100 100" className="h-full w-auto aspect-square shrink-0" aria-hidden="true">
+      <circle cx="50" cy="50" r="48" fill="#ffffff" stroke="#00853F" strokeWidth="3" />
+      <circle cx="50" cy="50" r="44.5" fill="none" stroke="#FCD116" strokeWidth="1.5" />
+      
+      {/* Senegal Tricolor Flag in Center */}
+      <g transform="translate(33, 24)">
+        <rect x="0" y="0" width="11.3" height="25" rx="1.5" fill="#00853F" />
+        <rect x="11.3" y="0" width="11.3" height="25" fill="#FCD116" />
+        <rect x="22.6" y="0" width="11.3" height="25" rx="1.5" fill="#E31B23" />
+        {/* 5-pointed green star in center of yellow band */}
+        <polygon
+          points="17,7 18.6,12.5 23.8,12.5 19.6,15.8 21.2,21.2 17,17.9 12.8,21.2 14.4,15.8 10.2,12.5 15.4,12.5"
+          fill="#00853F"
+        />
+      </g>
 
-    {/* Olympic Rings underneath flag */}
-    <g transform="translate(18, 54) scale(0.64)" fill="none" strokeWidth="3.8">
-      <circle cx="18" cy="16" r="11" stroke="#0085C7" />
-      <circle cx="50" cy="16" r="11" stroke="#111827" />
-      <circle cx="82" cy="16" r="11" stroke="#DF0024" />
-      <circle cx="34" cy="28" r="11" stroke="#F4C300" />
-      <circle cx="66" cy="28" r="11" stroke="#009F3D" />
-    </g>
+      {/* Olympic Rings underneath flag */}
+      <g transform="translate(18, 54) scale(0.64)" fill="none" strokeWidth="4">
+        <circle cx="18" cy="16" r="11" stroke="#0085C7" />
+        <circle cx="50" cy="16" r="11" stroke="#111827" />
+        <circle cx="82" cy="16" r="11" stroke="#DF0024" />
+        <circle cx="34" cy="28" r="11" stroke="#F4C300" />
+        <circle cx="66" cy="28" r="11" stroke="#009F3D" />
+      </g>
+    </svg>
 
-    {/* Bottom label */}
-    <text 
-      x="50" 
-      y="88" 
-      textAnchor="middle" 
-      fontFamily="system-ui, -apple-system, sans-serif" 
-      fontSize="4.8" 
-      fontWeight="900" 
-      letterSpacing="0.08em" 
-      fill="#00853F"
-    >
-      OLYMPIQUE
-    </text>
-  </svg>
+    {/* Clear Typography Mark */}
+    <div className="flex flex-col justify-center leading-none">
+      <span className="text-[10px] font-black tracking-tight text-slate-900 leading-none">CNOSS</span>
+      <span className="text-[5px] font-extrabold tracking-widest text-emerald-700 uppercase leading-none mt-0.5">SÉNÉGAL</span>
+    </div>
+  </div>
 );
 
 export const ISASurfLogo: React.FC<{ className?: string }> = ({ className = "h-7 sm:h-8" }) => (
@@ -231,7 +211,23 @@ export const PartnerMarks: React.FC<{ affiliations: InstitutionAffiliation[] }> 
   return (
     <div className="flex items-center gap-3 sm:gap-4">
       {affiliations.map((item, idx) => {
-        // If a custom high-res logo image was uploaded, display it with contrast optimization
+        const upper = item.name.trim().toUpperCase();
+
+        // Prioritize official HD vector marks for standard institutions
+        if (upper.includes('CNOSS')) {
+          return <CNOSSBadge key={item.id || idx} className="h-8 sm:h-9" />;
+        }
+        if (upper === 'ISA') {
+          return <ISASurfLogo key={item.id || idx} className="h-7 sm:h-8" />;
+        }
+        if (upper === 'ASC') {
+          return <ASCSurfLogo key={item.id || idx} className="h-7 sm:h-8" />;
+        }
+        if (upper === 'CIO' || upper.includes('OLYMP')) {
+          return <OlympicRings key={item.id || idx} className="h-7 w-12 sm:h-8 sm:w-14" />;
+        }
+
+        // Custom logo for other institutions
         if (item.logoUrl && item.logoUrl !== '/logo.png') {
           return (
             <img
@@ -244,19 +240,6 @@ export const PartnerMarks: React.FC<{ affiliations: InstitutionAffiliation[] }> 
           );
         }
 
-        const upper = item.name.trim().toUpperCase();
-        if (upper.includes('CNOSS')) {
-          return <CNOSSBadge key={item.id || idx} className="h-8 w-8 sm:h-9 sm:w-9" />;
-        }
-        if (upper === 'CIO' || upper.includes('OLYMP')) {
-          return <OlympicRings key={item.id || idx} className="h-7 w-12 sm:h-8 sm:w-14" />;
-        }
-        if (upper === 'ASC') {
-          return <ASCSurfLogo key={item.id || idx} className="h-7 sm:h-8" />;
-        }
-        if (upper === 'ISA') {
-          return <ISASurfLogo key={item.id || idx} className="h-7 sm:h-8" />;
-        }
         return (
           <span
             key={item.id || idx}
@@ -340,10 +323,10 @@ export const FederalOfficialCard: React.FC<FederalOfficialCardProps> = ({
   return (
     <div className="w-[85.6mm] h-[54mm] relative overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 print:rounded-none print:shadow-none">
       {/* Dynamic country flag corner in top-left */}
-      <CountryFlagCorner country={orgCountry} flagUrl={orgFlag} />
+      <CountryFlagCorner country={orgCountry} flagUrl={orgFlag} className="absolute left-0 top-0 z-0 h-[21mm] w-[21mm] pointer-events-none" />
 
       <div className="relative z-10 flex h-[calc(54mm-10mm)] items-center gap-4 bg-white px-5 py-3">
-        <div className="min-w-0 flex-1 self-start pt-[22mm] text-center">
+        <div className="relative z-20 min-w-0 flex-1 self-start pt-[16mm] text-center">
           <h2 className="whitespace-nowrap text-[13px] uppercase leading-snug tracking-[0.05em] text-slate-950">
             <span className="font-semibold">{official.firstName} </span>
             <span className="font-extrabold">{official.lastName}</span>
@@ -353,7 +336,7 @@ export const FederalOfficialCard: React.FC<FederalOfficialCardProps> = ({
               fontSize: `${titleFontSize(official.title)}px`,
               letterSpacing: '0.07em'
             }} 
-            className="mt-2.5 whitespace-nowrap font-bold leading-normal text-slate-800 uppercase"
+            className="mt-2 whitespace-nowrap font-bold leading-normal text-slate-800 uppercase"
           >
             {official.title}
           </p>

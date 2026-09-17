@@ -9,7 +9,7 @@ interface CountryFlagCornerProps {
 export const CountryFlagCorner: React.FC<CountryFlagCornerProps> = ({
   country,
   flagUrl,
-  className = "absolute left-0 top-0 z-20 h-[35mm] w-[35mm]"
+  className = "absolute left-0 top-0 z-0 h-[21mm] w-[21mm] pointer-events-none"
 }) => {
   // If custom flag image is provided, render it clipped to the corner triangle
   if (flagUrl) {
