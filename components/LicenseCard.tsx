@@ -93,7 +93,7 @@ export const LicenseCard: React.FC<LicenseCardProps> = ({
           </div>
 
           <div className={`${textClass} flex-1 flex flex-col justify-center`}>
-            <h1 className="text-[9px] font-black leading-none tracking-tighter uppercase mb-0.5">{orgName}</h1>
+            <h1 className="text-[9px] font-extrabold leading-none tracking-[0.03em] uppercase mb-0.5">{orgName}</h1>
             <div className="flex items-center gap-2">
               <p className="text-[7px] font-bold tracking-[0.1em] opacity-80 uppercase leading-none">{headerTitleFr}</p>
               <div className={`h-1 w-1 ${license.type === LicenseType.LOISIR ? 'bg-slate-900/40' : 'bg-white/40'} rounded-full`}></div>
@@ -115,7 +115,7 @@ export const LicenseCard: React.FC<LicenseCardProps> = ({
             )}
             {/* ID Overlay on photo for security feel */}
             <div className="absolute bottom-0 left-0 right-0 bg-black/40 backdrop-blur-[2px] py-1 px-1.5 flex items-center justify-center">
-              <span className="text-[7px] text-white font-mono font-bold tracking-tight">VERIFIED: {license.id.split('-').pop()}</span>
+              <span className="text-[7px] text-white font-mono font-bold tracking-normal">VERIFIED: {license.id.split('-').pop()}</span>
             </div>
           </div>
         </div>
@@ -129,21 +129,21 @@ export const LicenseCard: React.FC<LicenseCardProps> = ({
                 <AutoFitText
                   maxFontSize={12}
                   minFontSize={7}
-                  className="font-black text-slate-900 leading-normal uppercase tracking-tight"
+                  className="font-extrabold text-slate-900 leading-normal uppercase tracking-[0.03em]"
                 >
                   {license.lastName}
                 </AutoFitText>
                 <AutoFitText
                   maxFontSize={10}
                   minFontSize={7}
-                  className="font-bold text-slate-700 leading-normal"
+                  className="font-bold text-slate-700 leading-normal tracking-[0.02em]"
                 >
                   {license.firstName}
                 </AutoFitText>
               </div>
               <div className="text-right shrink-0 ml-2">
                 <p className="text-[6.5px] text-slate-500 uppercase font-black tracking-widest mb-0.5 leading-normal">N° Licence</p>
-                <p className="text-[12px] font-black text-red-600 leading-normal tracking-tighter font-mono">{license.id}</p>
+                <p className="text-[12px] font-extrabold text-red-600 leading-normal tracking-[0.04em] font-mono">{license.id}</p>
               </div>
             </div>
 
@@ -153,14 +153,14 @@ export const LicenseCard: React.FC<LicenseCardProps> = ({
                 <AutoFitText
                   maxFontSize={8.5}
                   minFontSize={5}
-                  className="font-black text-slate-800 leading-normal uppercase tracking-tight"
+                  className="font-bold text-slate-800 leading-normal uppercase tracking-[0.02em]"
                 >
                   {license.club}
                 </AutoFitText>
               </div>
               <div className="min-w-0">
                 <p className="text-[6px] text-slate-400 uppercase font-bold tracking-widest mb-0.5 leading-normal">Catégorie</p>
-                <p className="text-[8.5px] font-black text-fss-green leading-normal uppercase overflow-visible">{license.category}</p>
+                <p className="text-[8.5px] font-extrabold text-fss-green leading-normal uppercase tracking-[0.02em] overflow-visible">{license.category}</p>
               </div>
             </div>
           </div>

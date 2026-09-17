@@ -39,7 +39,7 @@ export class PvcExportService {
       backgroundColor: null,
       logging: false,
       onclone: (clonedDoc) => {
-        // Prevent vertical clipping on all cloned text elements
+        // Prevent vertical clipping and character collisions on all cloned text elements
         const textElements = clonedDoc.querySelectorAll<HTMLElement>('p, h1, h2, h3, span, strong');
         textElements.forEach((el) => {
           el.style.overflowY = 'visible';
@@ -48,6 +48,11 @@ export class PvcExportService {
           const currentLineHeight = window.getComputedStyle(el).lineHeight;
           if (currentLineHeight === 'normal' || parseFloat(currentLineHeight) <= parseFloat(window.getComputedStyle(el).fontSize) * 1.1) {
             el.style.lineHeight = '1.35';
+          }
+          // Prevent negative letter spacing that causes characters to touch in html2canvas
+          const letterSpacing = window.getComputedStyle(el).letterSpacing;
+          if (letterSpacing && letterSpacing.startsWith('-')) {
+            el.style.letterSpacing = '0.02em';
           }
         });
       },

@@ -67,58 +67,200 @@ const FlagStrip: React.FC<{ country?: string | null }> = ({ country }) => {
   );
 };
 
-const OlympicRings = () => (
-  <svg viewBox="0 0 100 44" className="h-6 w-12 shrink-0" aria-label="CIO">
-    <g fill="none" strokeWidth="4">
-      <circle cx="18" cy="16" r="11" stroke="#0085c7" />
-      <circle cx="50" cy="16" r="11" stroke="#000" />
-      <circle cx="82" cy="16" r="11" stroke="#df0024" />
-      <circle cx="34" cy="28" r="11" stroke="#f4c300" />
-      <circle cx="66" cy="28" r="11" stroke="#009f3d" />
+export const OlympicRings: React.FC<{ className?: string }> = ({ className = "h-7 w-12 sm:h-8 sm:w-14" }) => (
+  <svg viewBox="0 0 100 44" className={`${className} shrink-0`} role="img" aria-label="CIO">
+    <g fill="none" strokeWidth="4.2">
+      <circle cx="18" cy="16" r="11" stroke="#0085C7" />
+      <circle cx="50" cy="16" r="11" stroke="#111827" />
+      <circle cx="82" cy="16" r="11" stroke="#DF0024" />
+      <circle cx="34" cy="28" r="11" stroke="#F4C300" />
+      <circle cx="66" cy="28" r="11" stroke="#009F3D" />
     </g>
   </svg>
 );
 
-const PartnerMarks: React.FC<{ affiliations: InstitutionAffiliation[] }> = ({ affiliations }) => {
+export const CNOSSBadge: React.FC<{ className?: string; title?: string }> = ({ 
+  className = "h-8 w-8 sm:h-9 sm:w-9",
+  title = "Comité National Olympique et Sportif Sénégalais"
+}) => (
+  <svg 
+    viewBox="0 0 100 100" 
+    className={`${className} shrink-0`} 
+    role="img" 
+    aria-label={title}
+  >
+    <title>{title}</title>
+    {/* Outer circle */}
+    <circle cx="50" cy="50" r="48" fill="#ffffff" stroke="#00853F" strokeWidth="2.5" />
+    <circle cx="50" cy="50" r="44.5" fill="none" stroke="#FCD116" strokeWidth="1" strokeDasharray="2.5,1.5" />
+    
+    {/* Circular text arc */}
+    <path id="cnoss-text-arc" d="M 16,50 A 34,34 0 1,1 84,50" fill="none" />
+    <text className="text-[4.8px] font-black uppercase fill-slate-800 tracking-wider">
+      <textPath href="#cnoss-text-arc" startOffset="50%" textAnchor="middle">
+        C.N.O.S.S. · SÉNÉGAL
+      </textPath>
+    </text>
+    
+    {/* Senegal Tricolor Flag in Center */}
+    <g transform="translate(33, 26)">
+      <rect x="0" y="0" width="11.3" height="23" rx="1.5" fill="#00853F" />
+      <rect x="11.3" y="0" width="11.3" height="23" fill="#FCD116" />
+      <rect x="22.6" y="0" width="11.3" height="23" rx="1.5" fill="#E31B23" />
+      {/* 5-pointed green star in center of yellow band */}
+      <polygon
+        points="17,6.5 18.6,11.5 23.8,11.5 19.6,14.6 21.2,19.6 17,16.5 12.8,19.6 14.4,14.6 10.2,11.5 15.4,11.5"
+        fill="#00853F"
+      />
+    </g>
+
+    {/* Olympic Rings underneath flag */}
+    <g transform="translate(18, 54) scale(0.64)" fill="none" strokeWidth="3.8">
+      <circle cx="18" cy="16" r="11" stroke="#0085C7" />
+      <circle cx="50" cy="16" r="11" stroke="#111827" />
+      <circle cx="82" cy="16" r="11" stroke="#DF0024" />
+      <circle cx="34" cy="28" r="11" stroke="#F4C300" />
+      <circle cx="66" cy="28" r="11" stroke="#009F3D" />
+    </g>
+
+    {/* Bottom label */}
+    <text 
+      x="50" 
+      y="88" 
+      textAnchor="middle" 
+      fontFamily="system-ui, -apple-system, sans-serif" 
+      fontSize="4.8" 
+      fontWeight="900" 
+      letterSpacing="0.08em" 
+      fill="#00853F"
+    >
+      OLYMPIQUE
+    </text>
+  </svg>
+);
+
+export const ISASurfLogo: React.FC<{ className?: string }> = ({ className = "h-7 sm:h-8" }) => (
+  <svg 
+    viewBox="0 0 145 42" 
+    className={`${className} w-auto shrink-0`} 
+    role="img" 
+    aria-label="International Surfing Association"
+  >
+    {/* ISA wave cyan/blue mark */}
+    <g fill="#0077C8">
+      <circle cx="8" cy="10" r="3.2" />
+      <rect x="5" y="16" width="6" height="18" rx="1.5" />
+      
+      <path d="M 29,19.5 C 27,17.5 24,16 20.5,16 C 16,16 13,17.8 13,21 C 13,24.2 16,25.4 21,26.5 C 26.5,27.6 30,29.2 30,33 C 30,36.8 26.2,39 21,39 C 16.5,39 12.8,37 10.5,34.5 L 13.5,31 C 15.5,33 18,34.5 21,34.5 C 23.8,34.5 25.5,33.2 25.5,31.2 C 25.5,29 23,28 18,27 C 13,25.8 9,24.2 9,20.5 C 9,16.8 13,14 19.5,14 C 23.5,14 27,15.5 29.5,17.5 Z" />
+      
+      <path d="M 44,16.5 L 48.5,16.5 L 48.5,34 L 44.5,34 L 44.5,31.5 C 43,33.5 40,34.8 37,34.8 C 32,34.8 28.5,31.5 28.5,26.5 C 28.5,21.5 32.5,18.5 37.5,18.5 C 40,18.5 42.5,19.2 44,20.8 Z M 44,25 C 43,23.5 41,22.8 38.5,22.8 C 35.5,22.8 33.8,24.5 33.8,26.8 C 33.8,29.2 35.5,30.8 38.5,30.8 C 41,30.8 43,29.8 44,28.2 Z" />
+    </g>
+
+    {/* 'surf' in clean weight */}
+    <text 
+      x="53" 
+      y="34" 
+      fontFamily="system-ui, -apple-system, sans-serif" 
+      fontSize="24" 
+      fontWeight="400" 
+      fill="#0077C8"
+    >
+      surf
+    </text>
+
+    {/* Subtitle baseline */}
+    <text 
+      x="5" 
+      y="41" 
+      fontFamily="system-ui, -apple-system, sans-serif" 
+      fontSize="4.5" 
+      fontWeight="700" 
+      letterSpacing="0.08em" 
+      fill="#64748B"
+    >
+      INTERNATIONAL SURFING ASSOCIATION
+    </text>
+  </svg>
+);
+
+export const ASCSurfLogo: React.FC<{ className?: string }> = ({ className = "h-7 sm:h-8" }) => (
+  <svg 
+    viewBox="0 0 135 42" 
+    className={`${className} w-auto shrink-0`} 
+    role="img" 
+    aria-label="African Surfing Confederation"
+  >
+    <text 
+      x="2" 
+      y="27" 
+      fontFamily="system-ui, -apple-system, sans-serif" 
+      fontSize="27" 
+      fontWeight="900" 
+      letterSpacing="-0.02em" 
+      fill="#0284C7"
+    >
+      ASC
+    </text>
+    <text 
+      x="58" 
+      y="27" 
+      fontFamily="system-ui, -apple-system, sans-serif" 
+      fontSize="25" 
+      fontWeight="400" 
+      fill="#64748B"
+    >
+      surf
+    </text>
+    <text 
+      x="3" 
+      y="38" 
+      fontFamily="system-ui, -apple-system, sans-serif" 
+      fontSize="4.2" 
+      fontWeight="700" 
+      letterSpacing="0.07em" 
+      fill="#475569"
+    >
+      AFRICAN SURFING CONFEDERATION
+    </text>
+  </svg>
+);
+
+export const PartnerMarks: React.FC<{ affiliations: InstitutionAffiliation[] }> = ({ affiliations }) => {
   if (!affiliations || affiliations.length === 0) return null;
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-3 sm:gap-4">
       {affiliations.map((item, idx) => {
-        // If a custom logo image was uploaded, display the real logo image
+        // If a custom high-res logo image was uploaded, display it with contrast optimization
         if (item.logoUrl && item.logoUrl !== '/logo.png') {
           return (
             <img
               key={item.id || idx}
               src={item.logoUrl}
               alt={item.name}
-              className="h-6 max-h-[7mm] max-w-[28mm] object-contain shrink-0 drop-shadow-2xs"
+              className="h-8 sm:h-9 max-h-[9.5mm] max-w-[34mm] object-contain shrink-0"
+              style={{ imageRendering: '-webkit-optimize-contrast' }}
             />
           );
         }
 
         const upper = item.name.trim().toUpperCase();
+        if (upper.includes('CNOSS')) {
+          return <CNOSSBadge key={item.id || idx} className="h-8 w-8 sm:h-9 sm:w-9" />;
+        }
         if (upper === 'CIO' || upper.includes('OLYMP')) {
-          return <OlympicRings key={item.id || idx} />;
+          return <OlympicRings key={item.id || idx} className="h-7 w-12 sm:h-8 sm:w-14" />;
         }
         if (upper === 'ASC') {
-          return (
-            <span key={item.id || idx} className="text-[14px] font-black tracking-tighter text-sky-600 leading-none shrink-0">
-              ASC<span className="font-normal text-slate-400">surf</span>
-            </span>
-          );
+          return <ASCSurfLogo key={item.id || idx} className="h-7 sm:h-8" />;
         }
         if (upper === 'ISA') {
-          return (
-            <span key={item.id || idx} className="text-[12px] font-black tracking-tighter text-sky-700 leading-none shrink-0">
-              ISA<span className="block -mt-0.5 text-[3.5px] font-bold tracking-normal text-slate-400">INTERNATIONAL SURFING ASSOC</span>
-            </span>
-          );
+          return <ISASurfLogo key={item.id || idx} className="h-7 sm:h-8" />;
         }
         return (
           <span
             key={item.id || idx}
-            className="inline-flex items-center px-1.5 py-0.5 rounded border border-slate-300 bg-slate-50 text-[8.5px] font-black tracking-wider text-slate-800 uppercase leading-none shadow-2xs shrink-0"
+            className="inline-flex items-center px-2 py-1 rounded border border-slate-300 bg-slate-50 text-[9px] font-black tracking-wider text-slate-800 uppercase leading-none shadow-2xs shrink-0"
           >
             {item.name}
           </span>
@@ -128,7 +270,7 @@ const PartnerMarks: React.FC<{ affiliations: InstitutionAffiliation[] }> = ({ af
   );
 };
 
-const titleFontSize = (title: string) => Math.max(5, Math.min(10, 180 / Math.max(title.length, 1)));
+export const titleFontSize = (title: string) => Math.max(7.5, Math.min(10.5, 210 / Math.max(title.length, 1)));
 
 export const FederalOfficialCard: React.FC<FederalOfficialCardProps> = ({ 
   official, 
@@ -177,7 +319,7 @@ export const FederalOfficialCard: React.FC<FederalOfficialCardProps> = ({
               <Logo className="h-10 w-10" src={orgLogo} />
             </div>
             <div>
-              <h2 className="text-[9px] font-black uppercase leading-none">{orgName}</h2>
+              <h2 className="text-[9.5px] font-extrabold uppercase leading-snug tracking-[0.05em]">{orgName}</h2>
               <p className="mt-1 text-[7px] font-bold uppercase tracking-[0.12em] text-white/80">Carte professionnelle · verso</p>
             </div>
           </div>
@@ -202,13 +344,16 @@ export const FederalOfficialCard: React.FC<FederalOfficialCardProps> = ({
 
       <div className="relative z-10 flex h-[calc(54mm-10mm)] items-center gap-4 bg-white px-5 py-3">
         <div className="min-w-0 flex-1 self-start pt-[22mm] text-center">
-          <h2 className="whitespace-nowrap text-[12px] uppercase leading-none tracking-tight text-slate-950">
-            <span className="font-medium">{official.firstName} </span>
-            <span className="font-black">{official.lastName}</span>
+          <h2 className="whitespace-nowrap text-[13px] uppercase leading-snug tracking-[0.05em] text-slate-950">
+            <span className="font-semibold">{official.firstName} </span>
+            <span className="font-extrabold">{official.lastName}</span>
           </h2>
           <p 
-            style={{ fontSize: `${titleFontSize(official.title)}px` }} 
-            className="mt-3 whitespace-nowrap font-black leading-none tracking-wide text-slate-950 uppercase"
+            style={{ 
+              fontSize: `${titleFontSize(official.title)}px`,
+              letterSpacing: '0.07em'
+            }} 
+            className="mt-2.5 whitespace-nowrap font-bold leading-normal text-slate-800 uppercase"
           >
             {official.title}
           </p>
@@ -231,11 +376,11 @@ export const FederalOfficialCard: React.FC<FederalOfficialCardProps> = ({
         </div>
       </div>
       {affiliationsList.length > 0 && (
-        <div className="absolute bottom-[11mm] left-[8mm] z-20">
+        <div className="absolute bottom-[11.5mm] left-[6mm] max-w-[48mm] z-20">
           <PartnerMarks affiliations={affiliationsList} />
         </div>
       )}
-      <div className="absolute bottom-0 left-0 right-0 h-10 bg-emerald-700 pt-2 text-center text-[12px] font-black uppercase tracking-[0.1em] text-white">
+      <div className="absolute bottom-0 left-0 right-0 h-10 bg-emerald-700 flex items-center justify-center px-4 text-center text-[12px] font-extrabold uppercase tracking-[0.08em] text-white pb-0.5">
         {orgName}
       </div>
     </div>

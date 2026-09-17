@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { COUNTRIES } from '../config/countries';
 import { InstitutionAffiliation } from '../services/setupService';
+import { CNOSSBadge, ISASurfLogo, ASCSurfLogo, OlympicRings } from '../components/FederalOfficialCard';
 
 export const Setup: React.FC = () => {
   const navigate = useNavigate();
@@ -300,6 +301,7 @@ export const Setup: React.FC = () => {
                   <span className="text-xs font-bold text-slate-500 mr-1">Raccourcis :</span>
                   {[
                     { name: 'CIO', label: '🏅 CIO (Olympique)' },
+                    { name: 'CNOSS', label: '🇸🇳 CNOSS (Sénégal)' },
                     { name: 'ISA', label: '🏄 ISA (Surfing)' },
                     { name: 'ASC', label: '🌍 ASC (Afrique)' }
                   ].map(({ name, label }) => {
@@ -356,27 +358,55 @@ export const Setup: React.FC = () => {
                             {inst.logoUrl ? (
                               <img src={inst.logoUrl} alt={inst.name} className="h-full w-full object-contain" />
                             ) : (
-                              <div className="flex flex-col items-center justify-center text-slate-400">
-                                <ImageIcon size={14} />
-                                <span className="text-[7px] font-bold uppercase">Sans logo</span>
-                              </div>
+                              (() => {
+                                const upper = inst.name.trim().toUpperCase();
+                                if (upper.includes('CNOSS')) return <CNOSSBadge className="h-8 w-8" />;
+                                if (upper === 'CIO' || upper.includes('OLYMP')) return <OlympicRings className="h-5 w-10" />;
+                                if (upper === 'ASC') return <ASCSurfLogo className="h-5" />;
+                                if (upper === 'ISA') return <ISASurfLogo className="h-5" />;
+                                return (
+                                  <div className="flex flex-col items-center justify-center text-slate-400">
+                                    <ImageIcon size={14} />
+                                    <span className="text-[7px] font-bold uppercase">Sans logo</span>
+                                  </div>
+                                );
+                              })()
                             )}
                           </div>
                           <div className="min-w-0">
                             <span className="text-xs font-bold text-white block truncate uppercase">{inst.name}</span>
-                            <label className="cursor-pointer text-[10px] text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1 mt-0.5">
-                              <Upload size={10} />
-                              {inst.logoUrl ? 'Changer logo' : 'Ajouter logo'}
-                              <input
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={(e) => {
-                                  const f = e.target.files?.[0];
-                                  if (f) handleUploadInstitutionLogo(inst.id, f);
-                                }}
-                              />
-                            </label>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <label className="cursor-pointer text-[10px] text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1">
+                                <Upload size={10} />
+                                {inst.logoUrl ? 'Changer' : 'Image perso'}
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={(e) => {
+                                    const f = e.target.files?.[0];
+                                    if (f) handleUploadInstitutionLogo(inst.id, f);
+                                  }}
+                                />
+                              </label>
+
+                              {inst.logoUrl ? (
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveInstitutionLogo(inst.id)}
+                                  className="text-[10px] text-amber-400 hover:text-amber-300 font-medium flex items-center gap-0.5"
+                                  title="Rétablir le logo vectoriel HD"
+                                >
+                                  <Sparkles size={9} />
+                                  <span>Vectoriel HD</span>
+                                </button>
+                              ) : (
+                                <span className="text-[9px] text-emerald-400/80 font-medium flex items-center gap-0.5">
+                                  <Sparkles size={9} />
+                                  HD actif
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
 

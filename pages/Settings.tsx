@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { SetupService, InstitutionAffiliation } from '../services/setupService';
 import { LicenseService } from '../services/licenseService';
 import { COUNTRIES, getCountryByCodeOrName } from '../config/countries';
-import { parseAffiliations } from '../components/FederalOfficialCard';
+import { parseAffiliations, CNOSSBadge, ISASurfLogo, ASCSurfLogo, OlympicRings } from '../components/FederalOfficialCard';
 import { 
   Building2, 
   Upload, 
@@ -26,6 +26,7 @@ import {
   Check,
   Trash2,
   Plus,
+  Sparkles,
   Image as ImageIcon
 } from 'lucide-react';
 
@@ -552,6 +553,7 @@ export const Settings: React.FC = () => {
               <span className="text-xs font-bold text-slate-400 mr-1">Raccourcis :</span>
               {[
                 { name: 'CIO', label: '🏅 CIO (Olympique)' },
+                { name: 'CNOSS', label: '🇸🇳 CNOSS (Sénégal)' },
                 { name: 'ISA', label: '🏄 ISA (Surfing)' },
                 { name: 'ASC', label: '🌍 ASC (Afrique)' }
               ].map(({ name, label }) => {
@@ -616,23 +618,32 @@ export const Settings: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-3">
-                      {/* Logo thumbnail or placeholder */}
+                      {/* Logo thumbnail or HD vector */}
                       <div className="h-12 w-20 bg-white rounded-xl border border-slate-200 p-1 flex items-center justify-center shrink-0 overflow-hidden shadow-inner">
                         {inst.logoUrl ? (
                           <img src={inst.logoUrl} alt={inst.name} className="h-full w-full object-contain" />
                         ) : (
-                          <div className="flex flex-col items-center justify-center text-slate-300">
-                            <ImageIcon size={18} />
-                            <span className="text-[8px] font-bold uppercase mt-0.5">Logo SVG/Vect</span>
-                          </div>
+                          (() => {
+                            const upper = inst.name.trim().toUpperCase();
+                            if (upper.includes('CNOSS')) return <CNOSSBadge className="h-9 w-9" />;
+                            if (upper === 'CIO' || upper.includes('OLYMP')) return <OlympicRings className="h-6 w-12" />;
+                            if (upper === 'ASC') return <ASCSurfLogo className="h-6" />;
+                            if (upper === 'ISA') return <ISASurfLogo className="h-6" />;
+                            return (
+                              <div className="flex flex-col items-center justify-center text-slate-300">
+                                <ImageIcon size={18} />
+                                <span className="text-[8px] font-bold uppercase mt-0.5">Logo SVG</span>
+                              </div>
+                            );
+                          })()
                         )}
                       </div>
 
-                      {/* Upload and remove buttons */}
+                      {/* Upload and remove/reset buttons */}
                       <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-                        <label className="cursor-pointer inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-all truncate">
+                        <label className="cursor-pointer inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-xs transition-all truncate">
                           <Upload size={12} />
-                          <span>{inst.logoUrl ? 'Changer logo' : 'Mettre un logo'}</span>
+                          <span>{inst.logoUrl ? 'Changer image' : 'Importer image'}</span>
                           <input
                             type="file"
                             accept="image/*"
@@ -644,14 +655,21 @@ export const Settings: React.FC = () => {
                           />
                         </label>
 
-                        {inst.logoUrl && (
+                        {inst.logoUrl ? (
                           <button
                             type="button"
                             onClick={() => handleRemoveInstitutionLogo(inst.id)}
-                            className="text-[10px] text-slate-400 hover:text-red-500 font-semibold text-center transition-colors"
+                            className="text-[10px] text-emerald-600 hover:text-emerald-700 font-bold text-center transition-colors flex items-center justify-center gap-1"
+                            title="Rétablir le logo vectoriel HD officiel sans aucune dégradation"
                           >
-                            Supprimer le logo
+                            <Sparkles size={11} className="text-emerald-500" />
+                            <span>Logo vectoriel HD</span>
                           </button>
+                        ) : (
+                          <span className="text-[10px] text-emerald-600 font-bold text-center flex items-center justify-center gap-1">
+                            <Sparkles size={11} className="text-emerald-500" />
+                            Vectoriel HD actif
+                          </span>
                         )}
                       </div>
                     </div>
