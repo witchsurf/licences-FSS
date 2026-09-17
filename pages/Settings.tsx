@@ -55,9 +55,7 @@ export const Settings: React.FC = () => {
     if (exists) {
       setInstitutions(institutions.filter(i => i.name.toUpperCase() !== name.toUpperCase()));
     } else {
-      let defaultLogo: string | undefined = undefined;
-      if (name.toUpperCase() === 'ISA') defaultLogo = '/isa_logo.svg';
-      setInstitutions([...institutions, { id: name.toLowerCase().replace(/\s+/g, '-'), name, logoUrl: defaultLogo }]);
+      setInstitutions([...institutions, { id: name.toLowerCase().replace(/\s+/g, '-'), name }]);
     }
   };
 

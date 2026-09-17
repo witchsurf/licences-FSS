@@ -24,15 +24,10 @@ export const parseAffiliations = (affiliationsStr?: string | null): InstitutionA
       if (Array.isArray(parsed)) {
         return parsed.map((item, index) => {
           if (typeof item === 'string') {
-            const name = item.trim();
-            const logo = name.toUpperCase() === 'ISA' ? '/isa_logo.svg' : undefined;
-            return { id: name.toLowerCase().replace(/\s+/g, '-'), name, logoUrl: logo };
+            return { id: item.toLowerCase().replace(/\s+/g, '-'), name: item.trim() };
           }
           if (item && typeof item === 'object') {
-            let logo = (item.logoUrl && item.logoUrl !== '/logo.png') ? item.logoUrl : undefined;
-            if (!logo && (item.name || '').trim().toUpperCase() === 'ISA') {
-              logo = '/isa_logo.svg';
-            }
+            const logo = (item.logoUrl && item.logoUrl !== '/logo.png' && item.logoUrl !== '/isa_logo.svg') ? item.logoUrl : undefined;
             return {
               id: item.id || `inst-${index}`,
               name: item.name || '',
@@ -46,8 +41,7 @@ export const parseAffiliations = (affiliationsStr?: string | null): InstitutionA
   } catch {}
   return affiliationsStr.split(',').map((s, idx) => {
     const name = s.trim();
-    const logo = name.toUpperCase() === 'ISA' ? '/isa_logo.svg' : undefined;
-    return { id: name.toLowerCase().replace(/\s+/g, '-'), name, logoUrl: logo };
+    return { id: name.toLowerCase().replace(/\s+/g, '-'), name };
   }).filter(item => Boolean(item.name));
 };
 
@@ -73,98 +67,168 @@ const FlagStrip: React.FC<{ country?: string | null }> = ({ country }) => {
   );
 };
 
-export const OlympicRings: React.FC<{ className?: string }> = ({ className = "h-4 w-8 sm:h-4.5 sm:w-9" }) => (
+export const OlympicRings: React.FC<{ className?: string }> = ({ className = "h-6.5 sm:h-7" }) => (
   <svg 
-    viewBox="0 0 100 45" 
-    className={`${className} shrink-0`} 
+    viewBox="0 0 100 42" 
+    className={`${className} w-auto max-h-[7mm] max-w-[22mm] shrink-0`} 
     fill="none" 
-    strokeWidth="3.5"
+    strokeWidth="3.8"
     role="img"
     aria-label="Anneaux Olympiques"
   >
     <title>Comité International Olympique</title>
-    <circle cx="18" cy="16" r="12" stroke="#0085C7" />
-    <circle cx="50" cy="16" r="12" stroke="#111827" />
-    <circle cx="82" cy="16" r="12" stroke="#DF0024" />
-    <circle cx="34" cy="28" r="12" stroke="#F4C300" />
-    <circle cx="66" cy="28" r="12" stroke="#009F3D" />
+    <g transform="translate(0, 1)">
+      <circle cx="18" cy="15" r="12" stroke="#0085C7" />
+      <circle cx="50" cy="15" r="12" stroke="#111827" />
+      <circle cx="82" cy="15" r="12" stroke="#DF0024" />
+      <circle cx="34" cy="27" r="12" stroke="#F4C300" />
+      <circle cx="66" cy="27" r="12" stroke="#009F3D" />
+    </g>
   </svg>
 );
 
 export const CNOSSBadge: React.FC<{ className?: string; title?: string }> = ({ 
-  className = "h-5 w-5 sm:h-5.5 sm:w-5.5", 
+  className = "h-6.5 sm:h-7", 
   title = "Comité National Olympique et Sportif Sénégalais" 
 }) => (
   <svg 
-    viewBox="0 0 100 100" 
-    className={`${className} shrink-0`} 
+    viewBox="0 0 130 42" 
+    className={`${className} w-auto max-h-[7mm] max-w-[24mm] shrink-0`} 
     role="img" 
     aria-label={title}
   >
     <title>{title}</title>
-    {/* Outer circle with Senegal green and gold border */}
-    <circle cx="50" cy="50" r="48" fill="#ffffff" stroke="#00853F" strokeWidth="3" />
-    <circle cx="50" cy="50" r="44.5" fill="none" stroke="#FCD116" strokeWidth="1.5" />
-    
-    {/* Senegal Tricolor Flag in Center */}
-    <g transform="translate(32, 16)">
-      <rect x="0" y="0" width="12" height="26" rx="1.5" fill="#00853F" />
-      <rect x="12" y="0" width="12" height="26" fill="#FCD116" />
-      <rect x="24" y="0" width="12" height="26" rx="1.5" fill="#E31B23" />
-      <polygon
-        points="18,7 19.8,12.8 25.5,12.8 21,16.2 22.8,22 18,18.5 13.2,22 15,16.2 10.5,12.8 16.2,12.8"
-        fill="#00853F"
-      />
+    {/* Circular Olympic Crest on the left (proportional to ASC height) */}
+    <g transform="translate(2, 2)">
+      <circle cx="19" cy="19" r="18" fill="#ffffff" stroke="#00853F" strokeWidth="1.5" />
+      <circle cx="19" cy="19" r="16.5" fill="none" stroke="#FCD116" strokeWidth="0.8" />
+      
+      {/* Senegal Tricolor Flag in Center */}
+      <g transform="translate(11.5, 6)">
+        <rect x="0" y="0" width="5" height="11" rx="0.5" fill="#00853F" />
+        <rect x="5" y="0" width="5" height="11" fill="#FCD116" />
+        <rect x="10" y="0" width="5" height="11" rx="0.5" fill="#E31B23" />
+        <polygon
+          points="7.5,2.5 8.2,4.8 10.5,4.8 8.6,6.2 9.3,8.5 7.5,7.1 5.7,8.5 6.4,6.2 4.5,4.8 6.8,4.8"
+          fill="#00853F"
+        />
+      </g>
+
+      {/* Olympic Rings underneath flag */}
+      <g transform="translate(6, 18) scale(0.26)" fill="none" strokeWidth="4">
+        <circle cx="18" cy="16" r="11" stroke="#0085C7" />
+        <circle cx="50" cy="16" r="11" stroke="#111827" />
+        <circle cx="82" cy="16" r="11" stroke="#DF0024" />
+        <circle cx="34" cy="28" r="11" stroke="#F4C300" />
+        <circle cx="66" cy="28" r="11" stroke="#009F3D" />
+      </g>
     </g>
 
-    {/* Olympic Rings underneath flag */}
-    <g transform="translate(18, 48) scale(0.64)" fill="none" strokeWidth="4">
-      <circle cx="18" cy="16" r="11" stroke="#0085C7" />
-      <circle cx="50" cy="16" r="11" stroke="#111827" />
-      <circle cx="82" cy="16" r="11" stroke="#DF0024" />
-      <circle cx="34" cy="28" r="11" stroke="#F4C300" />
-      <circle cx="66" cy="28" r="11" stroke="#009F3D" />
-    </g>
-
-    {/* Bold CNOSS text */}
+    {/* Bold CNOSS text matching ASC typography and scale */}
     <text 
-      x="50" 
-      y="86" 
-      textAnchor="middle" 
+      x="43" 
+      y="26" 
       fontFamily="system-ui, -apple-system, sans-serif" 
-      fontSize="12" 
+      fontSize="24" 
       fontWeight="900" 
-      letterSpacing="0.05em" 
+      letterSpacing="-0.01em" 
       fill="#00853F"
     >
       CNOSS
     </text>
+    <text 
+      x="44" 
+      y="38" 
+      fontFamily="system-ui, -apple-system, sans-serif" 
+      fontSize="7.5" 
+      fontWeight="800" 
+      letterSpacing="0.14em" 
+      fill="#1E293B"
+    >
+      SÉNÉGAL
+    </text>
   </svg>
 );
 
-export const ISASurfLogo: React.FC<{ className?: string }> = ({ className = "h-4.5 sm:h-5" }) => (
-  <img 
-    src="/isa_logo.svg" 
-    alt="International Surfing Association" 
-    className={`${className} w-auto max-h-[5mm] max-w-[18mm] object-contain shrink-0`} 
-    style={{ imageRendering: '-webkit-optimize-contrast' }}
-  />
-);
-
-export const ASCSurfLogo: React.FC<{ className?: string }> = ({ className = "h-4.5 sm:h-5" }) => (
+export const ISASurfLogo: React.FC<{ className?: string }> = ({ className = "h-6.5 sm:h-7" }) => (
   <svg 
     viewBox="0 0 135 42" 
-    className={`${className} w-auto max-h-[5mm] max-w-[18mm] shrink-0`} 
+    className={`${className} w-auto max-h-[7mm] max-w-[24mm] shrink-0`} 
+    role="img" 
+    aria-label="International Surfing Association"
+  >
+    <text 
+      x="2" 
+      y="27" 
+      fontFamily="system-ui, -apple-system, sans-serif" 
+      fontSize="27" 
+      fontWeight="900" 
+      letterSpacing="-0.02em" 
+      fill="#0077C8"
+    >
+      ISA
+    </text>
+    <text 
+      x="52" 
+      y="27" 
+      fontFamily="system-ui, -apple-system, sans-serif" 
+      fontSize="25" 
+      fontWeight="400" 
+      fill="#64748B"
+    >
+      surf
+    </text>
+    <text 
+      x="3" 
+      y="38" 
+      fontFamily="system-ui, -apple-system, sans-serif" 
+      fontSize="4.2" 
+      fontWeight="700" 
+      letterSpacing="0.07em" 
+      fill="#475569"
+    >
+      INTERNATIONAL SURFING ASSOCIATION
+    </text>
+  </svg>
+);
+
+export const ASCSurfLogo: React.FC<{ className?: string }> = ({ className = "h-6.5 sm:h-7" }) => (
+  <svg 
+    viewBox="0 0 135 42" 
+    className={`${className} w-auto max-h-[7mm] max-w-[24mm] shrink-0`} 
     role="img" 
     aria-label="African Surfing Confederation"
   >
-    <text x="2" y="27" fontFamily="system-ui, -apple-system, sans-serif" fontSize="27" fontWeight="900" letterSpacing="-0.02em" fill="#0284C7">
+    <text 
+      x="2" 
+      y="27" 
+      fontFamily="system-ui, -apple-system, sans-serif" 
+      fontSize="27" 
+      fontWeight="900" 
+      letterSpacing="-0.02em" 
+      fill="#0284C7"
+    >
       ASC
     </text>
-    <text x="58" y="27" fontFamily="system-ui, -apple-system, sans-serif" fontSize="25" fontWeight="400" fill="#64748B">
+    <text 
+      x="58" 
+      y="27" 
+      fontFamily="system-ui, -apple-system, sans-serif" 
+      fontSize="25" 
+      fontWeight="400" 
+      fill="#64748B"
+    >
       surf
     </text>
-    <text x="3" y="38" fontFamily="system-ui, -apple-system, sans-serif" fontSize="4.2" fontWeight="700" letterSpacing="0.07em" fill="#475569">
+    <text 
+      x="3" 
+      y="38" 
+      fontFamily="system-ui, -apple-system, sans-serif" 
+      fontSize="4.2" 
+      fontWeight="700" 
+      letterSpacing="0.07em" 
+      fill="#475569"
+    >
       AFRICAN SURFING CONFEDERATION
     </text>
   </svg>
@@ -174,16 +238,16 @@ export const PartnerMarks: React.FC<{ affiliations: InstitutionAffiliation[] }> 
   if (!affiliations || affiliations.length === 0) return null;
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2.5 sm:gap-3">
       {affiliations.map((item, idx) => {
         // 1. GENERIC RULE: Always respect and display the user's uploaded logo image!
-        if (item.logoUrl && item.logoUrl !== '/logo.png') {
+        if (item.logoUrl && item.logoUrl !== '/logo.png' && item.logoUrl !== '/isa_logo.svg') {
           return (
             <img
               key={item.id || idx}
               src={item.logoUrl}
               alt={item.name}
-              className="h-4.5 sm:h-5 max-h-[5mm] max-w-[18mm] object-contain shrink-0"
+              className="h-6.5 sm:h-7 max-h-[7mm] max-w-[24mm] object-contain shrink-0"
               style={{ imageRendering: '-webkit-optimize-contrast' }}
             />
           );
@@ -192,22 +256,22 @@ export const PartnerMarks: React.FC<{ affiliations: InstitutionAffiliation[] }> 
         // 2. Generic fallbacks when NO custom image is uploaded
         const upper = item.name.trim().toUpperCase();
         if (upper.includes('CNOSS')) {
-          return <CNOSSBadge key={item.id || idx} className="h-5 w-5 sm:h-5.5 sm:w-5.5" />;
+          return <CNOSSBadge key={item.id || idx} className="h-6.5 sm:h-7" />;
         }
         if (upper === 'CIO' || upper.includes('OLYMP')) {
-          return <OlympicRings key={item.id || idx} className="h-4 w-8 sm:h-4.5 sm:w-9" />;
+          return <OlympicRings key={item.id || idx} className="h-6.5 sm:h-7" />;
         }
         if (upper === 'ISA') {
-          return <ISASurfLogo key={item.id || idx} className="h-4.5 sm:h-5" />;
+          return <ISASurfLogo key={item.id || idx} className="h-6.5 sm:h-7" />;
         }
         if (upper === 'ASC') {
-          return <ASCSurfLogo key={item.id || idx} className="h-4.5 sm:h-5" />;
+          return <ASCSurfLogo key={item.id || idx} className="h-6.5 sm:h-7" />;
         }
 
         return (
           <span
             key={item.id || idx}
-            className="inline-flex items-center px-1.5 py-0.5 rounded border border-slate-300 bg-slate-50 text-[7.5px] font-black tracking-wider text-slate-700 uppercase leading-none shadow-2xs shrink-0"
+            className="inline-flex items-center px-2 py-1 rounded border border-slate-300 bg-slate-50 text-[8px] font-black tracking-wider text-slate-700 uppercase leading-none shadow-2xs shrink-0"
           >
             {item.name}
           </span>
