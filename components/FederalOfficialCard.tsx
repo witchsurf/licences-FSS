@@ -80,10 +80,10 @@ export const OlympicRings: React.FC<{ className?: string }> = ({ className = "h-
 );
 
 export const CNOSSBadge: React.FC<{ className?: string; title?: string }> = ({ 
-  className = "h-8 sm:h-9",
+  className = "h-7 sm:h-8",
   title = "Comité National Olympique et Sportif Sénégalais"
 }) => (
-  <div className={`${className} flex items-center gap-1.5 shrink-0`} role="img" aria-label={title}>
+  <div className={`${className} flex items-center gap-1 shrink-0`} role="img" aria-label={title}>
     {/* Circular Olympic Crest */}
     <svg viewBox="0 0 100 100" className="h-full w-auto aspect-square shrink-0" aria-hidden="true">
       <circle cx="50" cy="50" r="48" fill="#ffffff" stroke="#00853F" strokeWidth="3" />
@@ -113,8 +113,8 @@ export const CNOSSBadge: React.FC<{ className?: string; title?: string }> = ({
 
     {/* Clear Typography Mark */}
     <div className="flex flex-col justify-center leading-none">
-      <span className="text-[10px] font-black tracking-tight text-slate-900 leading-none">CNOSS</span>
-      <span className="text-[5px] font-extrabold tracking-widest text-emerald-700 uppercase leading-none mt-0.5">SÉNÉGAL</span>
+      <span className="text-[9px] font-black tracking-tight text-slate-900 leading-none">CNOSS</span>
+      <span className="text-[4.5px] font-black tracking-wider text-emerald-700 uppercase leading-none mt-0.5">SÉNÉGAL</span>
     </div>
   </div>
 );
@@ -323,10 +323,10 @@ export const FederalOfficialCard: React.FC<FederalOfficialCardProps> = ({
   return (
     <div className="w-[85.6mm] h-[54mm] relative overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 print:rounded-none print:shadow-none">
       {/* Dynamic country flag corner in top-left */}
-      <CountryFlagCorner country={orgCountry} flagUrl={orgFlag} className="absolute left-0 top-0 z-0 h-[21mm] w-[21mm] pointer-events-none" />
+      <CountryFlagCorner country={orgCountry} flagUrl={orgFlag} className="absolute left-0 top-0 z-10 h-[28mm] w-[28mm] pointer-events-none" />
 
-      <div className="relative z-10 flex h-[calc(54mm-10mm)] items-center gap-4 bg-white px-5 py-3">
-        <div className="relative z-20 min-w-0 flex-1 self-start pt-[16mm] text-center">
+      <div className="relative z-10 flex h-[calc(54mm-10mm)] items-center gap-4 bg-transparent px-5 py-3">
+        <div className="relative z-20 min-w-0 flex-1 self-start pt-[17mm] text-center">
           <h2 className="whitespace-nowrap text-[13px] uppercase leading-snug tracking-[0.05em] text-slate-950">
             <span className="font-semibold">{official.firstName} </span>
             <span className="font-extrabold">{official.lastName}</span>
@@ -359,7 +359,7 @@ export const FederalOfficialCard: React.FC<FederalOfficialCardProps> = ({
         </div>
       </div>
       {affiliationsList.length > 0 && (
-        <div className="absolute bottom-[11.5mm] left-[6mm] max-w-[48mm] z-20">
+        <div className="absolute bottom-[11mm] left-[6mm] max-w-[74mm] z-20">
           <PartnerMarks affiliations={affiliationsList} />
         </div>
       )}
