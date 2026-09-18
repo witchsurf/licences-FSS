@@ -89,7 +89,7 @@ export const OlympicRings: React.FC<{ className?: string }> = ({ className = "h-
 
 export const CNOSSBadge: React.FC<{ className?: string; title?: string }> = ({ 
   className = "h-7 sm:h-7.5", 
-  title = "Comité National Olympique Sportif Sénégalais" 
+  title = "Comité National Olympique et Sportif Sénégalais" 
 }) => (
   <div 
     className={`${className} flex items-center gap-1.5 shrink-0 select-none`} 
@@ -103,11 +103,11 @@ export const CNOSSBadge: React.FC<{ className?: string; title?: string }> = ({
       style={{ imageRendering: '-webkit-optimize-contrast' }}
     />
     <div className="flex flex-col justify-center leading-none">
-      <span className="text-[10px] sm:text-[11px] font-black tracking-tight text-slate-900 leading-none">
+      <span className="text-[11px] sm:text-[12px] font-black tracking-tight text-slate-900 leading-none">
         CNOSS
       </span>
-      <span className="text-[3.8px] sm:text-[4px] font-semibold text-slate-600 leading-tight mt-0.5 tracking-tight whitespace-nowrap">
-        Comité National Olympique Sportif Sénégalais
+      <span className="text-[4.5px] sm:text-[5px] font-black tracking-widest text-emerald-700 uppercase leading-none mt-0.5">
+        SÉNÉGAL
       </span>
     </div>
   </div>
@@ -319,14 +319,14 @@ export const FederalOfficialCard: React.FC<FederalOfficialCardProps> = ({
 
       <div className="relative z-10 flex h-[calc(54mm-10mm)] items-center gap-4 bg-transparent px-5 py-3">
         <div className="relative z-20 min-w-0 flex-1 self-start pt-[17mm] text-center">
-          <h2 className="whitespace-nowrap text-[13px] uppercase leading-snug tracking-[0.05em] text-slate-950">
+          <h2 className="whitespace-nowrap text-[13px] uppercase leading-snug tracking-[0.02em] text-slate-950">
             <span className="font-semibold">{official.firstName} </span>
             <span className="font-extrabold">{official.lastName}</span>
           </h2>
           <p 
             style={{ 
               fontSize: `${titleFontSize(official.title)}px`,
-              letterSpacing: '0.07em'
+              letterSpacing: '0.04em'
             }} 
             className="mt-2 whitespace-nowrap font-bold leading-normal text-slate-800 uppercase"
           >
