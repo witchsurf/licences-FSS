@@ -52,7 +52,16 @@ export const Setup: React.FC = () => {
     if (exists) {
       setInstitutions(institutions.filter(i => i.name.toUpperCase() !== name.toUpperCase()));
     } else {
-      setInstitutions([...institutions, { id: name.toLowerCase().replace(/\s+/g, '-'), name }]);
+      let defaultLogo: string | undefined = undefined;
+      const upper = name.toUpperCase();
+      if (upper === 'ISA') defaultLogo = '/isa_logo.svg';
+      else if (upper.includes('CNOSS')) defaultLogo = '/cnoss_logo_hd.png';
+
+      setInstitutions([...institutions, { 
+        id: name.toLowerCase().replace(/\s+/g, '-'), 
+        name,
+        logoUrl: defaultLogo,
+      }]);
     }
   };
 
@@ -358,19 +367,10 @@ export const Setup: React.FC = () => {
                             {inst.logoUrl ? (
                               <img src={inst.logoUrl} alt={inst.name} className="h-full w-full object-contain" />
                             ) : (
-                              (() => {
-                                const upper = inst.name.trim().toUpperCase();
-                                if (upper.includes('CNOSS')) return <CNOSSBadge className="h-8 w-8" />;
-                                if (upper === 'CIO' || upper.includes('OLYMP')) return <OlympicRings className="h-5 w-10" />;
-                                if (upper === 'ASC') return <ASCSurfLogo className="h-5" />;
-                                if (upper === 'ISA') return <ISASurfLogo className="h-5" />;
-                                return (
-                                  <div className="flex flex-col items-center justify-center text-slate-400">
-                                    <ImageIcon size={14} />
-                                    <span className="text-[7px] font-bold uppercase">Sans logo</span>
-                                  </div>
-                                );
-                              })()
+                              <div className="flex flex-col items-center justify-center text-slate-400">
+                                <ImageIcon size={14} />
+                                <span className="text-[7px] font-bold uppercase">Sans logo</span>
+                              </div>
                             )}
                           </div>
                           <div className="min-w-0">

@@ -21,7 +21,7 @@ export class PvcExportService {
    * Convert an HTML element into a high-DPI canvas
    */
   static async captureElementToCanvas(element: HTMLElement, options?: { scale?: number }): Promise<HTMLCanvasElement> {
-    const scale = options?.scale || 3.125; // 300 DPI / 96 DPI ≈ 3.125
+    const scale = options?.scale || 4.0; // 384+ DPI for ultra-sharp print rendering
 
     // Ensure all web fonts are fully loaded before rendering canvas
     if (typeof document !== 'undefined' && document.fonts && document.fonts.ready) {
@@ -32,28 +32,39 @@ export class PvcExportService {
       }
     }
 
+    // Ensure all images inside the element are fully loaded before capture
+    const images = Array.from(element.querySelectorAll('img'));
+    await Promise.all(
+      images.map((img) => {
+        if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+        return new Promise<void>((resolve) => {
+          img.onload = () => resolve();
+          img.onerror = () => resolve();
+        });
+      })
+    );
+
     return await html2canvas(element, {
       scale,
       useCORS: true,
       allowTaint: true,
       backgroundColor: null,
       logging: false,
+      imageTimeout: 15000,
       onclone: (clonedDoc) => {
-        // Prevent vertical clipping and character collisions on all cloned text elements
-        const textElements = clonedDoc.querySelectorAll<HTMLElement>('p, h1, h2, h3, span, strong');
+        // Reset letter spacing to normal to prevent html2canvas from injecting ugly spaces between letters (e.g. "FÉ DÉRATION", "EXP IR ATIO N")
+        const textElements = clonedDoc.querySelectorAll<HTMLElement>('p, h1, h2, h3, span, strong, div');
         textElements.forEach((el) => {
           el.style.overflowY = 'visible';
           el.style.overflow = 'visible';
-          // Ensure line-height provides sufficient vertical room for glyphs
-          const currentLineHeight = window.getComputedStyle(el).lineHeight;
-          if (currentLineHeight === 'normal' || parseFloat(currentLineHeight) <= parseFloat(window.getComputedStyle(el).fontSize) * 1.1) {
-            el.style.lineHeight = '1.35';
-          }
-          // Prevent negative letter spacing that causes characters to touch in html2canvas
-          const letterSpacing = window.getComputedStyle(el).letterSpacing;
-          if (letterSpacing && letterSpacing.startsWith('-')) {
-            el.style.letterSpacing = '0.02em';
-          }
+          el.style.letterSpacing = 'normal';
+          el.style.fontKerning = 'normal';
+          el.style.textRendering = 'geometricPrecision';
+        });
+
+        const clonedImages = clonedDoc.querySelectorAll<HTMLImageElement>('img');
+        clonedImages.forEach((img) => {
+          img.style.imageRendering = '-webkit-optimize-contrast';
         });
       },
     });
@@ -92,10 +103,44 @@ export class PvcExportService {
         pdf.addPage([widthMm, heightMm], 'landscape');
       }
 
-      pdf.addImage(imgData, 'PNG', 0, 0, widthMm, heightMm, undefined, 'FAST');
+      pdf.addImage(imgData, 'PNG', 0, 0, widthMm, heightMm, undefined, 'SLOW');
     }
 
     return pdf.output('blob');
+  }
+
+  /**
+   * Directly launch browser native vector printing for CR80 card badges
+   */
+  static printCr80Direct(): void {
+    const styleEl = document.createElement('style');
+    styleEl.id = 'cr80-direct-print-style';
+    styleEl.textContent = `
+      @media print {
+        @page {
+          size: 85.6mm 54mm !important;
+          margin: 0mm !important;
+        }
+        body {
+          margin: 0mm !important;
+          padding: 0mm !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        .no-print {
+          display: none !important;
+        }
+      }
+    `;
+    document.head.appendChild(styleEl);
+
+    const cleanup = () => {
+      styleEl.remove();
+      window.removeEventListener('afterprint', cleanup);
+    };
+
+    window.addEventListener('afterprint', cleanup);
+    window.print();
   }
 
   /**

@@ -27,7 +27,9 @@ export const parseAffiliations = (affiliationsStr?: string | null): InstitutionA
             return { id: item.toLowerCase().replace(/\s+/g, '-'), name: item.trim() };
           }
           if (item && typeof item === 'object') {
-            const logo = (item.logoUrl && item.logoUrl !== '/logo.png' && item.logoUrl !== '/isa_logo.svg') ? item.logoUrl : undefined;
+            const logo = (item.logoUrl && typeof item.logoUrl === 'string' && item.logoUrl.trim() && item.logoUrl !== '/logo.png') 
+              ? item.logoUrl 
+              : undefined;
             return {
               id: item.id || `inst-${index}`,
               name: item.name || '',
@@ -227,37 +229,33 @@ export const PartnerMarks: React.FC<{ affiliations: InstitutionAffiliation[] }> 
       {affiliations.map((item, idx) => {
         const upper = item.name.trim().toUpperCase();
 
-        // 1. Calibrated HD vector marks strictly proportional to ASC
-        if (upper.includes('CNOSS')) {
-          return <CNOSSBadge key={item.id || idx} className="h-7 sm:h-7.5" />;
-        }
-        if (upper === 'ISA') {
-          return <ISASurfLogo key={item.id || idx} className="h-7 sm:h-7.5" />;
-        }
-        if (upper === 'ASC') {
-          return <ASCSurfLogo key={item.id || idx} className="h-7 sm:h-7.5" />;
-        }
-        if (upper === 'CIO' || upper.includes('OLYMP')) {
-          return <OlympicRings key={item.id || idx} className="h-7 sm:h-7.5" />;
+        // 1. Primary: Use the uploaded logo whenever available
+        let logo = item.logoUrl && item.logoUrl !== '/logo.png' ? item.logoUrl : undefined;
+
+        // 2. Default fallback asset if the user hasn't uploaded a custom one yet
+        if (!logo) {
+          if (upper === 'ISA') logo = '/isa_logo.svg';
+          else if (upper.includes('CNOSS')) logo = '/cnoss_logo_hd.png';
         }
 
-        // 2. Custom logo for other institutions with proportional height constraint
-        if (item.logoUrl && item.logoUrl !== '/logo.png') {
+        // 3. Render all partner marks as high-quality uniform images
+        if (logo) {
           return (
             <img
               key={item.id || idx}
-              src={item.logoUrl}
+              src={logo}
               alt={item.name}
-              className="h-7 sm:h-7.5 max-h-[7.5mm] max-w-[26mm] object-contain shrink-0"
+              className="h-6.5 sm:h-7 max-h-[7mm] max-w-[28mm] object-contain shrink-0"
               style={{ imageRendering: '-webkit-optimize-contrast' }}
             />
           );
         }
 
+        // 4. Default badge for institutions without an uploaded logo
         return (
           <span
             key={item.id || idx}
-            className="inline-flex items-center px-2 py-1 rounded border border-slate-300 bg-slate-50 text-[8px] font-black tracking-wider text-slate-700 uppercase leading-none shadow-2xs shrink-0"
+            className="inline-flex items-center px-2 py-0.5 rounded border border-slate-300 bg-slate-50 text-[8.5px] font-black tracking-wider text-slate-700 uppercase leading-none shadow-2xs shrink-0"
           >
             {item.name}
           </span>

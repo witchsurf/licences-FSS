@@ -324,47 +324,60 @@ export const PvcBatchExportModal: React.FC<PvcBatchExportModalProps> = ({
         </div>
 
         {/* Footer actions */}
-        <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+        <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
           <button
             type="button"
             disabled={isProcessing}
             onClick={onClose}
             className="px-4 py-2 rounded-xl text-slate-600 hover:text-slate-900 text-xs font-bold transition-colors disabled:opacity-50"
           >
-            Annuler
+            Fermer
           </button>
 
-          <button
-            type="button"
-            disabled={isProcessing || count === 0}
-            onClick={handleStartExport}
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black shadow-md shadow-emerald-600/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isProcessing ? (
-              <>
-                <Loader2 size={16} className="animate-spin" />
-                Traitement en cours...
-              </>
-            ) : (
-              <>
-                <Printer size={16} />
-                Lancer l'exportation ({exportFormat.toUpperCase()})
-              </>
-            )}
-          </button>
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              disabled={isProcessing || count === 0}
+              onClick={() => PvcExportService.printCr80Direct()}
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold shadow-xs transition-all"
+              title="Impression directe vectorielle haute précision pour imprimante badge PVC physique (Evolis, Zebra...)"
+            >
+              <Printer size={15} className="text-emerald-600" />
+              <span>Imprimer direct Badge CR80</span>
+            </button>
+
+            <button
+              type="button"
+              disabled={isProcessing || count === 0}
+              onClick={handleStartExport}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black shadow-md shadow-emerald-600/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  Traitement en cours...
+                </>
+              ) : (
+                <>
+                  <CreditCard size={16} />
+                  Exporter {exportFormat.toUpperCase()} ({count})
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
       </div>
 
-      {/* Hidden Off-Screen Render Target for html2canvas */}
+      {/* Off-Screen Render Target with full opacity for optimal font rasterization */}
       <div 
         ref={hiddenContainerRef}
         style={{
           position: 'fixed',
-          left: 0,
+          left: '-99999px',
           top: 0,
-          zIndex: -9999,
-          opacity: 0,
+          zIndex: -1,
+          opacity: 1,
           pointerEvents: 'none',
         }}
       >

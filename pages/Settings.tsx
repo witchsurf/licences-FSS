@@ -55,7 +55,16 @@ export const Settings: React.FC = () => {
     if (exists) {
       setInstitutions(institutions.filter(i => i.name.toUpperCase() !== name.toUpperCase()));
     } else {
-      setInstitutions([...institutions, { id: name.toLowerCase().replace(/\s+/g, '-'), name }]);
+      let defaultLogo: string | undefined = undefined;
+      const upper = name.toUpperCase();
+      if (upper === 'ISA') defaultLogo = '/isa_logo.svg';
+      else if (upper.includes('CNOSS')) defaultLogo = '/cnoss_logo_hd.png';
+
+      setInstitutions([...institutions, { 
+        id: name.toLowerCase().replace(/\s+/g, '-'), 
+        name,
+        logoUrl: defaultLogo,
+      }]);
     }
   };
 
@@ -623,19 +632,10 @@ export const Settings: React.FC = () => {
                         {inst.logoUrl ? (
                           <img src={inst.logoUrl} alt={inst.name} className="h-full w-full object-contain" />
                         ) : (
-                          (() => {
-                            const upper = inst.name.trim().toUpperCase();
-                            if (upper.includes('CNOSS')) return <CNOSSBadge className="h-9 w-9" />;
-                            if (upper === 'CIO' || upper.includes('OLYMP')) return <OlympicRings className="h-6 w-12" />;
-                            if (upper === 'ASC') return <ASCSurfLogo className="h-6" />;
-                            if (upper === 'ISA') return <ISASurfLogo className="h-6" />;
-                            return (
-                              <div className="flex flex-col items-center justify-center text-slate-300">
-                                <ImageIcon size={18} />
-                                <span className="text-[8px] font-bold uppercase mt-0.5">Logo SVG</span>
-                              </div>
-                            );
-                          })()
+                          <div className="flex flex-col items-center justify-center text-slate-300">
+                            <ImageIcon size={18} />
+                            <span className="text-[8px] font-bold uppercase mt-0.5">Sans image</span>
+                          </div>
                         )}
                       </div>
 
