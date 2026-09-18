@@ -91,26 +91,48 @@ export const CNOSSBadge: React.FC<{ className?: string; title?: string }> = ({
   className = "h-7 sm:h-7.5", 
   title = "Comité National Olympique et Sportif Sénégalais" 
 }) => (
-  <div 
-    className={`${className} flex items-center gap-1.5 shrink-0 select-none`} 
+  <svg 
+    viewBox="0 0 135 42" 
+    className={`${className} w-auto max-h-[7.5mm] max-w-[26mm] shrink-0`} 
     role="img" 
     aria-label={title}
   >
-    <img 
-      src="/cnoss_logo_hd.png" 
-      alt="CNOSS" 
-      className="h-full w-auto aspect-square object-contain shrink-0" 
-      style={{ imageRendering: '-webkit-optimize-contrast' }}
-    />
-    <div className="flex flex-col justify-center leading-none">
-      <span className="text-[11px] sm:text-[12px] font-black tracking-tight text-slate-900 leading-none">
-        CNOSS
-      </span>
-      <span className="text-[4.5px] sm:text-[5px] font-black tracking-widest text-emerald-700 uppercase leading-none mt-0.5">
-        SÉNÉGAL
-      </span>
-    </div>
-  </div>
+    <title>{title}</title>
+    {/* Acronym in bold 900, exact same scale as ASC and ISA */}
+    <text 
+      x="2" 
+      y="27" 
+      fontFamily="system-ui, -apple-system, sans-serif" 
+      fontSize="27" 
+      fontWeight="900" 
+      letterSpacing="-0.02em" 
+      fill="#00853F"
+    >
+      CNOSS
+    </text>
+
+    {/* Official Olympic Rings adjacent to acronym at same optical baseline */}
+    <g transform="translate(86, 9) scale(0.48)" fill="none" strokeWidth="4">
+      <circle cx="18" cy="16" r="11" stroke="#0085C7" />
+      <circle cx="50" cy="16" r="11" stroke="#111827" />
+      <circle cx="82" cy="16" r="11" stroke="#DF0024" />
+      <circle cx="34" cy="28" r="11" stroke="#F4C300" />
+      <circle cx="66" cy="28" r="11" stroke="#009F3D" />
+    </g>
+
+    {/* Subtitle underneath at y=38, exact same styling as ASC and ISA */}
+    <text 
+      x="3" 
+      y="38" 
+      fontFamily="system-ui, -apple-system, sans-serif" 
+      fontSize="4.2" 
+      fontWeight="700" 
+      letterSpacing="0.07em" 
+      fill="#475569"
+    >
+      COMITÉ NATIONAL OLYMPIQUE SÉNÉGALAIS
+    </text>
+  </svg>
 );
 
 export const ISASurfLogo: React.FC<{ className?: string }> = ({ className = "h-7 sm:h-7.5" }) => (
