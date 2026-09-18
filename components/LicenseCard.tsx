@@ -104,7 +104,7 @@ export const LicenseCard: React.FC<LicenseCardProps> = ({
       </div>
 
       {/* Main Content Body */}
-      <div className="flex-1 p-3.5 flex gap-4 bg-gradient-to-br from-white to-slate-50">
+      <div className="flex-1 px-3.5 py-2 flex gap-3.5 bg-gradient-to-br from-white to-slate-50">
         {/* Profile Visual */}
         <div className="w-[26mm] shrink-0">
           <div className="w-full aspect-[4/5] bg-slate-100 rounded-xl overflow-hidden shadow-inner ring-1 ring-slate-200 relative">
@@ -114,29 +114,29 @@ export const LicenseCard: React.FC<LicenseCardProps> = ({
               <div className="w-full h-full flex items-center justify-center text-slate-300 text-xs font-bold uppercase tracking-widest">Photo</div>
             )}
             {/* ID Overlay on photo for security feel */}
-            <div className="absolute bottom-0 left-0 right-0 bg-black/40 backdrop-blur-[2px] py-1 px-1.5 flex items-center justify-center">
+            <div className="absolute bottom-0 left-0 right-0 bg-black/40 backdrop-blur-[2px] py-0.5 px-1.5 flex items-center justify-center">
               <span className="text-[7px] text-white font-mono font-bold tracking-normal">VERIFIED: {license.id.split('-').pop()}</span>
             </div>
           </div>
         </div>
 
         {/* Info Grid */}
-        <div className="flex-1 flex flex-col justify-between">
-          <div className="space-y-2">
+        <div className="flex-1 flex flex-col justify-between min-w-0">
+          <div className="space-y-1">
             <div className="flex justify-between items-start">
               <div className="min-w-0 flex-1">
                 <p className="text-[6.5px] text-slate-500 uppercase font-black tracking-widest mb-0.5 leading-normal">Titulaire / Holder</p>
                 <AutoFitText
                   maxFontSize={12}
                   minFontSize={7}
-                  className="font-extrabold text-slate-900 leading-normal uppercase tracking-[0.03em]"
+                  className="font-extrabold text-slate-900 leading-tight uppercase tracking-[0.02em]"
                 >
                   {license.lastName}
                 </AutoFitText>
                 <AutoFitText
                   maxFontSize={10}
                   minFontSize={7}
-                  className="font-bold text-slate-700 leading-normal tracking-[0.02em]"
+                  className="font-bold text-slate-700 leading-tight tracking-[0.01em]"
                 >
                   {license.firstName}
                 </AutoFitText>
@@ -147,47 +147,50 @@ export const LicenseCard: React.FC<LicenseCardProps> = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-[1.4fr_1fr] gap-2 border-t border-slate-100 pt-2">
+            <div className="grid grid-cols-[1.3fr_1fr] gap-2 border-t border-slate-100 pt-1">
               <div className="min-w-0">
                 <p className="text-[6px] text-slate-400 uppercase font-bold tracking-widest mb-0.5 leading-normal">Club Affilié</p>
                 <AutoFitText
                   maxFontSize={8.5}
                   minFontSize={5}
-                  className="font-bold text-slate-800 leading-normal uppercase tracking-[0.02em]"
+                  className="font-bold text-slate-800 leading-tight uppercase tracking-[0.01em]"
                 >
                   {license.club}
                 </AutoFitText>
               </div>
               <div className="min-w-0">
                 <p className="text-[6px] text-slate-400 uppercase font-bold tracking-widest mb-0.5 leading-normal">Catégorie</p>
-                <p className="text-[8.5px] font-extrabold text-fss-green leading-normal uppercase tracking-[0.02em] overflow-visible">{license.category}</p>
+                <p className="text-[8.5px] font-extrabold text-fss-green leading-normal uppercase tracking-[0.02em] truncate">{license.category}</p>
               </div>
             </div>
           </div>
 
-          <div className="flex justify-between items-end">
-            <div className="bg-slate-100 border border-slate-200 rounded-lg px-2 py-1">
-              <p className="text-[6.5px] text-slate-500 uppercase font-black tracking-widest mb-0.5 leading-normal">Expiration</p>
-              <p className="text-[10px] font-black text-slate-900 leading-normal">{new Date(license.expirationDate).toLocaleDateString('fr-FR')}</p>
+          <div className="flex justify-between items-end pt-1">
+            <div className="bg-slate-100 border border-slate-200 rounded-lg px-2 py-0.5">
+              <p className="text-[6px] text-slate-500 uppercase font-black tracking-widest leading-normal">Expiration</p>
+              <p className="text-[9.5px] font-black text-slate-900 leading-normal">{new Date(license.expirationDate).toLocaleDateString('fr-FR')}</p>
             </div>
 
             {/* QR Code Container */}
-            <div className="h-[14.5mm] w-[14.5mm] bg-white p-0.5 rounded-lg border border-slate-200 shadow-sm shrink-0 flex items-center justify-center">
+            <div className="relative h-[12mm] w-[12mm] bg-white p-0.5 rounded-lg border border-slate-200 shadow-sm shrink-0 flex items-center justify-center">
               <QRCodeSVG
                 value={verifyUrl}
-                size={120}
+                size={100}
                 level="H"
                 includeMargin={false}
-                imageSettings={{
-                  src: logoSrc,
-                  x: undefined,
-                  y: undefined,
-                  height: 24,
-                  width: 24,
-                  excavate: true,
-                }}
                 style={{ width: '100%', height: '100%' }}
               />
+              {/* Federal logo in the center of QR code (HTML img for guaranteed html2canvas & print rendering) */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="w-3.5 h-3.5 bg-white rounded-full p-0.5 shadow-xs flex items-center justify-center border border-slate-100">
+                  <img
+                    src={logoSrc}
+                    alt="Logo"
+                    className="w-full h-full object-contain"
+                    crossOrigin="anonymous"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
